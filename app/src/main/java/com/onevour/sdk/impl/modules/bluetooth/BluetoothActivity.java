@@ -1,5 +1,6 @@
 package com.onevour.sdk.impl.modules.bluetooth;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,7 +17,9 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
@@ -24,6 +27,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.onevour.core.utilities.commons.RefSession;
 import com.onevour.core.utilities.commons.ValueOf;
+import com.onevour.core.utilities.eventbus.MessageEvent;
 import com.onevour.core.utilities.helper.UIHelper;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 import com.onevour.sdk.impl.databinding.ActivityBluetoothBinding;
@@ -33,8 +37,13 @@ import com.onevour.sdk.impl.modules.bluetooth.services.v1.BluetoothSDKListenerHe
 import com.onevour.sdk.impl.modules.bluetooth.services.v1.BluetoothSDKService;
 import com.onevour.sdk.impl.modules.form.controllers.DeeplinkResult;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -70,7 +79,6 @@ public class BluetoothActivity extends AppCompatActivity {
         binding = ActivityBluetoothBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         UIHelper.initRecyclerView(binding.rvMessage, messages);
-        isGrantPermission(this);
         infoDevice();
         binding.stop.setOnClickListener(v -> {
             startActivity(new Intent(this, BluetoothDiscoveryActivity.class));
@@ -79,8 +87,11 @@ public class BluetoothActivity extends AppCompatActivity {
         });
 
         binding.start.setOnClickListener(v -> {
-            bluetoothSDKService.connectToServer();
+            // bluetoothSDKService.connectToServer();
+            bluetoothSDKService.write("");
         });
+
+        binding.demo.setOnClickListener(v -> startActivity(new Intent(BluetoothActivity.this, BluetoothDemoActivity.class)));
 
 
         binding.send.setOnClickListener(v -> {
@@ -91,30 +102,62 @@ public class BluetoothActivity extends AppCompatActivity {
         });
         //
 
+        if (isGrantPermission(this)) {
+            startBluetooth();
+        }
+    }
+
+    /**
+     * Only safe to call once BLUETOOTH_CONNECT (API 31+) is actually granted.
+     * Starting the service before that throws SecurityException and force-closes the app.
+     */
+    private void startBluetooth() {
         bindBluetoothService();
         // Register Listener
         // binding.connectionStatus.setText(bluetoothSDKService.getConnectionStatus());
         BluetoothSDKListenerHelper.registerBluetoothSDKListener(getApplicationContext(), mBluetoothListener);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> bluetoothSDKService.connectToServer(), 250);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != 100) return;
+        boolean allGranted = grantResults.length > 0;
+        for (int result : grantResults) {
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
+            }
+        }
+        if (allGranted && Objects.isNull(bluetoothSDKService)) {
+            startBluetooth();
+        }
     }
 
     private void scrollToBottom(RecyclerView recyclerView) {
         // scroll to last item to get the view of last item
-        final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        final RecyclerView.Adapter adapter = recyclerView.getAdapter();
-        final int lastItemPosition = adapter.getItemCount() - 1;
 
-        layoutManager.scrollToPositionWithOffset(lastItemPosition, 0);
-        recyclerView.post(new Runnable() {
-            @Override
-            public void run() {
-                // then scroll to specific offset
-                View target = layoutManager.findViewByPosition(lastItemPosition);
-                if (target != null) {
-                    int offset = recyclerView.getMeasuredHeight() - target.getMeasuredHeight();
-                    layoutManager.scrollToPositionWithOffset(lastItemPosition, offset);
-                }
+        new Handler(Looper.getMainLooper()).post(() -> {
+            final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+            final RecyclerView.Adapter adapter = recyclerView.getAdapter();
+            final int lastItemPosition = adapter.getItemCount() - 1;
+
+            layoutManager.scrollToPositionWithOffset(lastItemPosition, 0);
+            View target = layoutManager.findViewByPosition(lastItemPosition);
+            if (target != null) {
+                int offset = recyclerView.getMeasuredHeight() - target.getMeasuredHeight();
+                layoutManager.scrollToPositionWithOffset(lastItemPosition, offset);
             }
         });
+//        recyclerView.post(() -> {
+//            // then scroll to specific offset
+//            View target = layoutManager.findViewByPosition(lastItemPosition);
+//            if (target != null) {
+//                int offset = recyclerView.getMeasuredHeight() - target.getMeasuredHeight();
+//                layoutManager.scrollToPositionWithOffset(lastItemPosition, offset);
+//            }
+//        });
     }
 
     @Override
@@ -125,7 +168,9 @@ public class BluetoothActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        isGrantPermission(this);
+        if (isGrantPermission(this) && Objects.isNull(bluetoothSDKService)) {
+            startBluetooth();
+        }
     }
 
     @Override
@@ -152,7 +197,7 @@ public class BluetoothActivity extends AppCompatActivity {
     /**
      * Handle service connection
      */
-    private ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection connection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -173,7 +218,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
 
     @SuppressLint("MissingPermission")
-    private BluetoothSDKListener mBluetoothListener = new BluetoothSDKListener() {
+    private final BluetoothSDKListener mBluetoothListener = new BluetoothSDKListener() {
 
         @Override
         public void onDiscoveryStarted() {
@@ -213,41 +258,51 @@ public class BluetoothActivity extends AppCompatActivity {
             binding.start.setEnabled(0 == bluetoothSDKService.getConnectionStatusCode());
         }
 
-        StringBuilder sb = new StringBuilder();
+        private final StringBuilder sb = new StringBuilder();
+
         boolean isJson = false;
 
+        private final String delimiter = "\u0000";
+
+        private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        private String time() {
+            return format.format(new Date());
+        }
 
         @Override
         public void onMessageReceived(BluetoothDevice device, String message) {
-            // Implement your logic here
-            Log.d(TAG, "onMessageReceived(BluetoothDevice device, String message)");
-            Log.d(TAG, "receive message on listener " + message);
-            String messageTrim = message.trim();
-            if (messageTrim.startsWith("{")) {
-                isJson = true;
-                sb.setLength(0);
-                sb.append(messageTrim);
-            } else if (messageTrim.endsWith("}")) {
-                sb.append(messageTrim);
-                DeeplinkResult deeplinkResult = GsonHelper.gson.fromJson(sb.toString(), DeeplinkResult.class);
-                Gson gson = new GsonBuilder()
-                        .serializeNulls()
-                        .setPrettyPrinting()
-                        .create();
-                deeplinkResult.setFace(null);
-                deeplinkResult.setSignature(null);
-                deeplinkResult.setFp(null);
-                messages.addMore(gson.toJson(deeplinkResult));
-                isJson = false;
-            } else {
-                if (isJson) {
-                    sb.append(messageTrim);
+            Log.d(TAG, "receive message on listener " + message.trim());
+            String[] parts = message.trim().split(delimiter);
+            for (String part : parts) {
+                if (part.trim().startsWith("{")) {
+                    isJson = true;
+                    sb.setLength(0);
+                    sb.append(part.trim());
+                } else if (part.trim().endsWith("}")) {
+                    sb.append(part.trim());
+                    DeeplinkResult deeplinkResult = GsonHelper.gson.fromJson(sb.toString(), DeeplinkResult.class);
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setPrettyPrinting()
+                            .create();
+                    deeplinkResult.setFace(null);
+                    deeplinkResult.setSignature(null);
+                    deeplinkResult.setFp(null);
+                    String messageJson = gson.toJson(deeplinkResult);
+                    messages.addMore(time() + "\n" + device.getName() + "\n" +messageJson);
+                    EventBus.getDefault().post(new MessageEvent("BT", messageJson));
+                    isJson = false;
                 } else {
-                    messages.addMore(device.getName() + "\n" + message);
+                    if (isJson) {
+                        sb.append(part.trim());
+                    } else {
+                        if (part.trim().isEmpty()) continue;
+                        messages.addMore(time() + "\n" + device.getName() + "\n" + part);
+                        EventBus.getDefault().post(new MessageEvent("BT", part));
+                    }
                 }
-
             }
-
             scrollToBottom(binding.rvMessage);
         }
 
@@ -299,7 +354,12 @@ public class BluetoothActivity extends AppCompatActivity {
     }
 
 
-    private void isGrantPermission(Context context) {
+    /**
+     * @return true if all required Bluetooth permissions are already granted.
+     * When false, a request dialog has been shown; caller must wait for
+     * onRequestPermissionsResult() instead of proceeding immediately.
+     */
+    private boolean isGrantPermission(Context context) {
         List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.BLUETOOTH);
         // android >= 12
@@ -321,10 +381,11 @@ public class BluetoothActivity extends AppCompatActivity {
         }
         if (requestList.isEmpty()) {
             Log.d(TAG, "permission grant");
-            return;
+            return true;
         }
         ActivityCompat.requestPermissions((Activity) context, requestList.toArray(new String[0]), 100);
         Log.d(TAG, "permission not grant : ");
+        return false;
     }
 
     private static void askToUser(Activity activity, boolean result, List<String> permissions) {

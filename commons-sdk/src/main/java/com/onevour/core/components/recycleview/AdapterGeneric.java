@@ -1,18 +1,13 @@
 package com.onevour.core.components.recycleview;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.AsyncDifferConfig;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListUpdateCallback;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -29,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 
 /***
  * multiple holder<br/>
@@ -41,21 +35,15 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     private static final String TAG = AdapterGeneric.class.getSimpleName();
 
-    private final Map<String, HolderGeneric> cached = new HashMap<>();
+    private static final Map<Class<?>, boolean[]> bindOverridesCache = new HashMap<>();
 
     private boolean isLoader = false;
-
-//    private ArrayList<E> adapterList = new ArrayList<>();
-
-    private final int VIEW_CONTENT = 1;
 
     private final int VIEW_LOADER = 0;
 
     private final Map<Integer, Class> holders = new HashMap<>();
 
     private final Map<Integer, Class> layoutHolderBindings = new HashMap<>();
-
-    private final Map<Integer, Integer> typeHolders = new HashMap<>();
 
     private final List<HolderGeneric.Listener> holderListener = new ArrayList<>();
 
@@ -65,21 +53,17 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
     private AsyncListDiffer<E> asyncListDiffer = new AsyncListDiffer<E>(this, new DiffUtil.ItemCallback<E>() {
         @Override
         public boolean areItemsTheSame(@NonNull E oldItem, @NonNull E newItem) {
-            return false;
+            return Objects.equals(oldItem, newItem);
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull E oldItem, @NonNull E newItem) {
-            return false;
+            return Objects.equals(oldItem, newItem);
         }
     });
 
 
     protected AdapterGeneric() {
-        registerHolder();
-    }
-
-    public AdapterGeneric(ArrayList adapterList) {
         registerHolder();
     }
 
@@ -108,8 +92,6 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
             throw new IllegalArgumentException("holder already register! ".concat(holder.getName()));
         }
         holders.put(type, holder);
-        typeHolders.put(type, type);
-        //
         Type typeOfBinding = ((ParameterizedType) holder.getGenericSuperclass()).getActualTypeArguments()[0];
         Class<?> bindingClass = (Class<?>) typeOfBinding;
         layoutHolderBindings.put(type, bindingClass);
@@ -118,7 +100,6 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
     @Override
     public int getItemViewType(int position) {
         Log.d(TAG, "item view type: ".concat(String.valueOf(position)));
-//        AdapterModel value = adapterList.get(position);
         AdapterModel value = asyncListDiffer.getCurrentList().get(position);
         if (ValueOf.nonNull(value)) {
             return value.getType();
@@ -132,32 +113,61 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
         try {
             Context context = parent.getContext();
             Class<?> holderClass = holders.get(viewType);
-            assert holderClass != null;
+            if (Objects.isNull(holderClass)) {
+                throw new NoSuchMethodException("Null holder class, not define before");
+            }
             Class<?> bindingClass = layoutHolderBindings.get(viewType);
-            assert bindingClass != null;
+            if (Objects.isNull(bindingClass)) {
+                throw new NoSuchMethodException("Null binding class, not define before");
+            }
             Method method = bindingClass.getMethod("inflate", LayoutInflater.class, ViewGroup.class, boolean.class);
             ViewBinding binding = (ViewBinding) method.invoke(null, LayoutInflater.from(context), parent, false);
             return holderGenerator(holderClass, binding);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InstantiationException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException |
+                 InstantiationException e) {
             throw new RuntimeException(e);
         }
     }
 
     private HolderGeneric holderGenerator(Type type, ViewBinding convertView) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
-        if (null == cached.get(type.hashCode())) {
-            Constructor constructor = ((Class<E>) type).getConstructor(convertView.getClass());
-            HolderGeneric holderGeneric = (HolderGeneric) constructor.newInstance(convertView);
-            cached.put("VH" + type.hashCode(), holderGeneric);
-            return holderGeneric;
-        } else {
-            return cached.get("VH" + type.hashCode());
+        Constructor constructor = ((Class<E>) type).getConstructor(convertView.getClass());
+        HolderGeneric holderGeneric = (HolderGeneric) constructor.newInstance(convertView);
+        return holderGeneric;
+    }
+
+
+
+    /**
+     * HolderGeneric exposes several onBindViewHolder overloads for convenience; a concrete
+     * holder normally overrides only one. Resolve (once per holder class, then cached) which
+     * ones are actually overridden so bind only invokes those instead of calling all of them.
+     */
+    private boolean[] resolveBindOverrides(Class<?> holderClass) {
+        boolean[] cached = bindOverridesCache.get(holderClass);
+        if (cached != null) return cached;
+        boolean[] overrides = new boolean[]{
+                isOverridden(holderClass, "onBindViewHolder", Object.class),
+                isOverridden(holderClass, "onBindViewHolder", Object.class, int.class),
+                isOverridden(holderClass, "onBindViewHolder", Object.class, int.class, int.class),
+                isOverridden(holderClass, "onBindViewHolder", List.class, int.class),
+                isOverridden(holderClass, "onBindViewHolder", List.class, int.class, int.class),
+                isOverridden(holderClass, "onBindViewHolder", Object.class, int.class, boolean.class, boolean.class),
+        };
+        bindOverridesCache.put(holderClass, overrides);
+        return overrides;
+    }
+
+    private boolean isOverridden(Class<?> holderClass, String name, Class<?>... paramTypes) {
+        Class<?> current = holderClass;
+        while (current != null && current != HolderGeneric.class) {
+            try {
+                current.getDeclaredMethod(name, paramTypes);
+                return true;
+            } catch (NoSuchMethodException e) {
+                current = current.getSuperclass();
+            }
         }
+        return false;
     }
 
     @Override
@@ -169,12 +179,14 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
             holder.setListener(listener);
         }
         holder.setPosition(position);
-        holder.onBindViewHolder(o);
-        holder.onBindViewHolder(o, position);
-        holder.onBindViewHolder(o, position, size);
-        holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position);
-        holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position, size);
-        holder.onBindViewHolder(o, position, 0 == position && !isLoader, position == getItemCount() - 1 && !isLoader);
+        boolean[] overrides = resolveBindOverrides(holder.getClass());
+        if (overrides[0]) holder.onBindViewHolder(o);
+        if (overrides[1]) holder.onBindViewHolder(o, position);
+        if (overrides[2]) holder.onBindViewHolder(o, position, size);
+        if (overrides[3]) holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position);
+        if (overrides[4]) holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position, size);
+        if (overrides[5])
+            holder.onBindViewHolder(o, position, 0 == position && !isLoader, position == getItemCount() - 1 && !isLoader);
         Log.d(TAG, "bind position ".concat(String.valueOf(position)));
     }
 
@@ -189,25 +201,6 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     private void setLoader(boolean loader) {
         isLoader = loader;
-        /*
-        int size = this.asyncListDiffer.getCurrentList().size();
-        if (isLoader) {
-            if (size > 0 && ValueOf.nonNull(this.asyncListDiffer.getCurrentList().get(size - 1))) {
-                this.asyncListDiffer.getCurrentList().add(null);
-                //notifyItemInserted(size);
-            } else if (size == 0) {
-                this.asyncListDiffer.getCurrentList().add(null);
-                //notifyItemInserted(size);
-            }
-
-        } else {
-            if (size > 0 && this.asyncListDiffer.getCurrentList().get(size - 1) == null) {
-                this.asyncListDiffer.getCurrentList().remove(size - 1);
-                // notifyItemRemoved(this.adapterList.size());
-            }
-        }
-        //this.asyncListDiffer.submitList(adapterList);
-         */
     }
 
     public void addMore(E o) {
@@ -276,16 +269,24 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     public Type modelType() {
         if (Objects.nonNull(modelType)) return modelType;
-        Type superClass = getClass().getGenericSuperclass();
-        if (superClass instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) superClass;
-            Type[] typeArguments = parameterizedType.getActualTypeArguments();
-            if (typeArguments.length > 0) {
-                modelType = (Class<?>) typeArguments[0];
-                return modelType;
+        Class<?> current = getClass();
+        while (current != null && AdapterGeneric.class.isAssignableFrom(current)) {
+            Type genericSuperclass = current.getGenericSuperclass();
+            if (genericSuperclass instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+                if (parameterizedType.getRawType() == AdapterGeneric.class) {
+                    Type typeArgument = parameterizedType.getActualTypeArguments()[0];
+                    if (typeArgument instanceof Class) {
+                        modelType = typeArgument;
+                        return modelType;
+                    }
+                    break;
+                }
             }
+            current = current.getSuperclass();
         }
-        return null;
+        throw new IllegalStateException("Unable to resolve model type for " + getClass().getName()
+                + ". A concrete subclass must directly parameterize AdapterGeneric<Model>, e.g. \"class MyAdapter extends AdapterGeneric<MyModel>\".");
     }
 
     @Deprecated

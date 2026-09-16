@@ -96,6 +96,9 @@ public class NumberInputView implements View.OnClickListener {
             numPoint.setVisibility(View.INVISIBLE);
             return;
         }
+        if (!(numberFormat instanceof DecimalFormat)) {
+            throw new IllegalArgumentException("numberFormat must be a DecimalFormat instance");
+        }
         DecimalFormatSymbols d = ((DecimalFormat) numberFormat).getDecimalFormatSymbols();
         decimalSeparator = d.getDecimalSeparator();
         numPoint.setText(String.valueOf(decimalSeparator));
@@ -161,7 +164,7 @@ public class NumberInputView implements View.OnClickListener {
         alertBuilder.setTitle("Opps, something wrong!");
         StringBuilder sb = new StringBuilder();
         sb.append(message);
-        if (Objects.nonNull(numberFormat)) {
+        if (numberFormat instanceof DecimalFormat) {
             DecimalFormatSymbols d = ((DecimalFormat) numberFormat).getDecimalFormatSymbols();
             sb.append("\ndecimal : ").append(d.getDecimalSeparator());
             sb.append("\ngroup : ").append(d.getGroupingSeparator());

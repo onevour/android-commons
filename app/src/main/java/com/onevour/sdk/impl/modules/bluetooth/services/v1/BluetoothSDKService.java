@@ -1,5 +1,6 @@
 package com.onevour.sdk.impl.modules.bluetooth.services.v1;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -9,9 +10,12 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 
+import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
@@ -107,7 +111,6 @@ public class BluetoothSDKService extends Service {
                 status = 0;
                 acceptThread = new AcceptThread(bluetoothAdapter);
                 acceptThread.start();
-                //connectToServer();
             }
         }
 
@@ -117,12 +120,34 @@ public class BluetoothSDKService extends Service {
         }
     };
 
+    /**
+     * BLUETOOTH_CONNECT (API 31+) gates almost every BluetoothAdapter call. Starting
+     * the service without it throws SecurityException and crashes the app.
+     */
+    private boolean hasBluetoothConnectPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true;
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "service created");
+        if (!hasBluetoothConnectPermission()) {
+            Log.e(TAG, "Missing BLUETOOTH_CONNECT permission, service will not start");
+            pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Missing Bluetooth permission");
+            stopSelf();
+            return;
+        }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         BluetoothSDKListenerHelper.registerBluetoothSDKListener(getApplicationContext(), listener);
+        if (Objects.isNull(bluetoothAdapter)) {
+            Log.e(TAG, "Bluetooth not supported on this device, service will not start");
+            pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Bluetooth not supported on this device");
+            stopSelf();
+            return;
+        }
         acceptThread = new AcceptThread(bluetoothAdapter);
         acceptThread.start();
     }
@@ -179,6 +204,10 @@ public class BluetoothSDKService extends Service {
 
     @SuppressLint("MissingPermission")
     public void connectToServer() {
+        if (Objects.isNull(bluetoothAdapter)) {
+            pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Bluetooth not supported on this device");
+            return;
+        }
         String configPrinter = refSession.findString("device_bt_address");
         Set<BluetoothDevice> devices = bluetoothAdapter.getBondedDevices();
         for (BluetoothDevice device : devices) {
@@ -189,6 +218,7 @@ public class BluetoothSDKService extends Service {
                 connectThread.start();
                 break;
             } else {
+
             }
         }
     }
@@ -336,6 +366,7 @@ public class BluetoothSDKService extends Service {
 
                     pushBroadcastMessage(BluetoothUtils.ACTION_MESSAGE_RECEIVED, mmSocket.getRemoteDevice(), message);
                 } catch (IOException e) {
+                    status = 0;
                     pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Input stream was disconnected");
                     break;
                 }
@@ -386,6 +417,10 @@ public class BluetoothSDKService extends Service {
          */
 
         public void startDiscovery(Context context) {
+            if (Objects.isNull(bluetoothAdapter)) {
+                pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Bluetooth not supported on this device");
+                return;
+            }
             IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
             filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 //            registerReceiver(discoveryBroadcastReceiver, filter);
@@ -397,6 +432,7 @@ public class BluetoothSDKService extends Service {
          * Stop discovery
          */
         public void stopDiscovery() {
+            if (Objects.isNull(bluetoothAdapter)) return;
             bluetoothAdapter.cancelDiscovery();
             pushBroadcastMessage(BluetoothUtils.ACTION_DISCOVERY_STOPPED, null, null);
         }

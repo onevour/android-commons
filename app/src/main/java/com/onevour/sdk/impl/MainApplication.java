@@ -22,7 +22,7 @@ public class MainApplication extends Application {
         component = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
                 .build();
-        //startService(new Intent(this, BluetoothSDKService.class));
+        startService(new Intent(this, BluetoothSDKService.class));
     }
 
     @Override

@@ -3,4 +3,11 @@
     <declare-styleable name="ImageViewRound">
         <attr name="round" format="dimension" />
     </declare-styleable>
+    <declare-styleable name="NumberInputTextField">
+        <attr name="minValue" format="string" />
+        <attr name="maxValue" format="string" />
+        <attr name="isDecimal" format="boolean" />
+        <attr name="titleText" format="string" />
+        <attr name="isShowMax" format="boolean" />
+    </declare-styleable>
 </resources>

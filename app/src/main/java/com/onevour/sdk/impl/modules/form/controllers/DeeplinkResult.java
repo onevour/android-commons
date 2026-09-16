@@ -94,6 +94,14 @@ public class DeeplinkResult {
     @SerializedName("fp")
     String fp;
 
+    @Expose
+    @SerializedName("sn")
+    String sn;
+
+    @Expose
+    @SerializedName("pcid")
+    String pcid;
+
     public String getFace() {
         return face;
     }
@@ -268,5 +276,21 @@ public class DeeplinkResult {
 
     public void setFp(String fp) {
         this.fp = fp;
+    }
+
+    public String getSn() {
+        return sn;
+    }
+
+    public void setSn(String sn) {
+        this.sn = sn;
+    }
+
+    public String getPcid() {
+        return pcid;
+    }
+
+    public void setPcid(String pcid) {
+        this.pcid = pcid;
     }
 }

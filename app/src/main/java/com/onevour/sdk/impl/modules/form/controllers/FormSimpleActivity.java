@@ -13,12 +13,6 @@ import com.onevour.sdk.impl.databinding.ActivityFormSimpleBinding;
 
 public class FormSimpleActivity extends AppCompatActivity {
 
-    private final NumberInput number = new NumberInput();
-
-    private final NumberInput decimal = new NumberInput();
-
-    private final NumberInput decimal2 = new NumberInput();
-
     private final NumberInput numPadText = new NumberInput();
 
     private ActivityFormSimpleBinding binding;
@@ -31,10 +25,6 @@ public class FormSimpleActivity extends AppCompatActivity {
         binding.inputNumber.setText(String.valueOf(Integer.MAX_VALUE));
         binding.inputDecimal.setText(NFormat.currencyFormat(5603169.26));
         binding.inputDecimal2.setText(NFormat.currencyFormat(100000.0));
-        number.setup(binding.inputNumber, 0, Integer.MAX_VALUE);
-        decimal.setup(binding.inputDecimal, NFormat.currency(), 0, 5603169.26);
-        decimal.showMaxValue();
-        decimal2.setup(binding.inputDecimal2, NFormat.currency(), 0, Double.MAX_VALUE);
         numPadText.setup(this, NFormat.currency(), 0, Double.MAX_VALUE);
         binding.inputFromText.setOnClickListener(this::updateValue);
     }
@@ -56,5 +46,11 @@ public class FormSimpleActivity extends AppCompatActivity {
 
         });
         numPadText.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        numPadText.destroy();
     }
 }

@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <com.onevour.core.utilities.input.NumberInputTextField
         android:id="@+id/input_number"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -29,6 +29,8 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
+        app:minValue="0"
+        app:maxValue="2147483647"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_1" />
@@ -44,7 +46,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/input_number" />
 
-    <EditText
+    <com.onevour.core.utilities.input.NumberInputTextField
         android:id="@+id/input_decimal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -56,6 +58,10 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
+        app:minValue="0"
+        app:maxValue="5603169.26"
+        app:isDecimal="true"
+        app:isShowMax="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_2" />
@@ -71,7 +77,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/input_decimal" />
 
-    <EditText
+    <com.onevour.core.utilities.input.NumberInputTextField
         android:id="@+id/input_decimal_2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -83,6 +89,9 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
+        app:minValue="0"
+        app:maxValue="1.7976931348623157E308"
+        app:isDecimal="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txt_3" />

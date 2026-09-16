@@ -58,6 +58,8 @@ public class FormScrollActivity extends AppCompatActivity {
 
     private boolean isScroll = false;
 
+    private final List<NumberInput> numberInputs = new ArrayList<>();
+
     ActivityFormScrollBinding binding;
 
     @Override
@@ -87,6 +89,7 @@ public class FormScrollActivity extends AppCompatActivity {
             e.setText(String.valueOf(0));
             NumberInput numberInput = new NumberInput(e);
 //            numberInput.setScrollFlag(isScroll);
+            numberInputs.add(numberInput);
         }
 //        ListenScrollChangesHelper listener = new ListenScrollChangesHelper();
 //        listener.addViewToListen(scrollView, (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -97,6 +100,14 @@ public class FormScrollActivity extends AppCompatActivity {
 //            lastScrollUpdate = System.currentTimeMillis();
 //        });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        for (NumberInput numberInput : numberInputs) {
+            numberInput.destroy();
+        }
     }
 
     private class ScrollStateHandler implements Runnable {

@@ -3,6 +3,7 @@ package com.onevour.core.utilities.input;
 import com.onevour.core.utilities.commons.ValueOf;
 
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InputInteger implements NumberInputAdapter {
@@ -34,14 +35,26 @@ public class InputInteger implements NumberInputAdapter {
 
     @Override
     public void setValue(Double doubleValue) {
-        value.set(doubleValue.intValue());
+        value.set(clamp(doubleValue.intValue()));
     }
 
     @Override
-    public void setValue(String valueStr) {
+    public void setValue(String valueStr) throws ParseException {
         if (ValueOf.isEmpty(valueStr)) {
             value.set(0);
-        } else value.set(Integer.parseInt(valueStr));
+            return;
+        }
+        try {
+            value.set(clamp(Integer.parseInt(valueStr.trim())));
+        } catch (NumberFormatException e) {
+            throw new ParseException("Invalid integer value: " + valueStr, 0);
+        }
+    }
+
+    private int clamp(int value) {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
     }
 
     @Override
@@ -56,6 +69,7 @@ public class InputInteger implements NumberInputAdapter {
         int integer = (value.get() / decrease);
         int diff = value.get() % decrease;
         if (diff > 0) integer = (value.get() - diff) / decrease;
+        if (integer < min) return;
         value.set(integer);
     }
 

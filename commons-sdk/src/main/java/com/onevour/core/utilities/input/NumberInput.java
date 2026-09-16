@@ -236,6 +236,11 @@ public class NumberInput implements View.OnTouchListener {
 
     public void inputValue(Double doubleValue) {
         if (Objects.isNull(doubleValue)) doubleValue = 0.0;
+        if (!Double.isFinite(doubleValue)) {
+            Log.w(TAG, "inputValue received a non-finite value (NaN/Infinity): " + doubleValue);
+            if (ValueOf.nonNull(listener)) listener.onInvalidValue(editText.getId(), doubleValue);
+            return;
+        }
         if (Objects.isNull(numberFormat)) {
             editText.setText(String.valueOf(doubleValue.intValue()));
         } else {
@@ -246,6 +251,14 @@ public class NumberInput implements View.OnTouchListener {
 
     public void setListener(Listener listener) {
         this.listener = listener;
+    }
+
+    /**
+     * Call from the owning Activity/Fragment's onDestroy() to stop the background executor.
+     * Without this, every NumberInput leaks a dedicated background thread.
+     */
+    public void destroy() {
+        executor.shutdown();
     }
 
 
@@ -280,6 +293,15 @@ public class NumberInput implements View.OnTouchListener {
         void onSubmitValue();
 
         void onValue(@IdRes int id, boolean isDecimal, int intValue, double doubleValue);
+
+        /**
+         * Called when inputValue(Double) receives a non-finite value (NaN or Infinity),
+         * e.g. from a calculation elsewhere that divided by zero. The field is left
+         * unchanged; the app should decide how to recover (reset, show a message, etc).
+         */
+        default void onInvalidValue(@IdRes int id, double invalidValue) {
+            // no-op by default
+        }
 
     }
 
