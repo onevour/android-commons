@@ -36,11 +36,15 @@ public class ImageHelper {
             ContentResolver cr = ac.getContentResolver();
             Cursor cursor = cr.query(uri, null, null, null, null);// Find from database according to Uri
             if (cursor != null) {
-                cursor.moveToFirst();
-                String filePath = cursor.getString(cursor.getColumnIndex("_data"));// Get picture path
-                cursor.close();
-                if (filePath != null) {
-                    return new File(filePath);
+                if (cursor.moveToFirst()) {
+                    int columnIndex = cursor.getColumnIndex("_data");
+                    String filePath = columnIndex >= 0 ? cursor.getString(columnIndex) : null;// Get picture path
+                    cursor.close();
+                    if (filePath != null) {
+                        return new File(filePath);
+                    }
+                } else {
+                    cursor.close();
                 }
             }
         } else if (uri.getScheme().toString().compareTo("file") == 0) {
