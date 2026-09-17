@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         applicationId "com.onevour.sdk.impl"
         minSdk = 23

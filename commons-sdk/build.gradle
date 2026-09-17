@@ -20,7 +20,7 @@ afterEvaluate {
 
 android {
     namespace 'com.onevour.core'
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         minSdk = 23
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
