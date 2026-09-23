@@ -3,12 +3,15 @@ package com.onevour.core.utilities.input;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+
+import androidx.core.content.ContextCompat;
 
 import com.onevour.core.R;
 import com.onevour.core.utilities.commons.ValueOf;
@@ -62,8 +65,10 @@ public class NumberInputView implements View.OnClickListener {
         TextView num7 = view.findViewById(R.id.key_num_7);
         TextView num8 = view.findViewById(R.id.key_num_8);
         TextView num9 = view.findViewById(R.id.key_num_9);
+
         numPoint = view.findViewById(R.id.key_num_point);
         TextView numOption = view.findViewById(R.id.key_option);
+        TextView numCancel = view.findViewById(R.id.key_cancel);
         ImageView del = view.findViewById(R.id.key_del);
         num0.setOnClickListener(this);
         num1.setOnClickListener(this);
@@ -77,21 +82,26 @@ public class NumberInputView implements View.OnClickListener {
         num9.setOnClickListener(this);
         numPoint.setOnClickListener(this);
         del.setOnClickListener(this);
-        numOption.setVisibility(View.INVISIBLE);
+        numOption.setOnClickListener(this);
+        numCancel.setOnClickListener(this);
+        // numOption.setVisibility(View.INVISIBLE);
         titleRight.setOnClickListener(v -> {
             if (Objects.isNull(listener)) return;
             listener.submitToMaxValue();
         });
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(view.getContext());
         alertBuilder.setView(view);
-        alertBuilder.setPositiveButton("OK", (dialog, which) -> {
-            if (Objects.isNull(listener)) return;
-            listener.submit();
-        });
-        alertBuilder.setNegativeButton("CANCEL", (dialog, which) -> {
-            // do nothing
-        });
+//        alertBuilder.setPositiveButton("OK", (dialog, which) -> {
+//            if (Objects.isNull(listener)) return;
+//            listener.submit();
+//        });
+//        alertBuilder.setNegativeButton("CANCEL", (dialog, which) -> {
+//            // do nothing
+//        });
+
         dialog = alertBuilder.create();
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
         if (Objects.isNull(numberFormat)) {
             numPoint.setVisibility(View.INVISIBLE);
             return;
@@ -143,9 +153,14 @@ public class NumberInputView implements View.OnClickListener {
                 listener.inputValue(decimalSeparator);
             } else if (i == R.id.key_del) {
                 listener.delete();
+            } else if (i == R.id.key_cancel) {
+                dialog.dismiss();
+            } else if (i == R.id.key_option) {
+                listener.submit();
+                dialog.dismiss();
             }
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -155,8 +170,8 @@ public class NumberInputView implements View.OnClickListener {
     }
 
     public void updateBackground(boolean isAfterPoint) {
-        numPoint.setTextColor(isAfterPoint ? Color.RED : Color.BLACK);
-        numPoint.setBackgroundResource(isAfterPoint ? R.drawable.input_number_btn_dialog_active : R.drawable.input_number_btn_dialog);
+        numPoint.setTextColor(isAfterPoint ? ContextCompat.getColor(context, R.color.numpad_red) : ContextCompat.getColor(context, R.color.numpad_black));
+        numPoint.setBackgroundResource(isAfterPoint ? R.drawable.numpad_outline_red : R.drawable.numpad_outline);
     }
 
     public void error(String message) {
@@ -188,7 +203,6 @@ public class NumberInputView implements View.OnClickListener {
         titleRight.setVisibility(View.VISIBLE);
         titleRight.setText(title);
     }
-
 
 
     public void showMaxValue() {

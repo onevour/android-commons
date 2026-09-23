@@ -1,0 +1,33 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="78dp"
+    android:height="54dp"
+    android:viewportWidth="78"
+    android:viewportHeight="54">
+
+    <!-- Outline -->
+    <path
+        android:pathData="
+            M27,0
+            H51
+            A27,27 0,0 1,78,27
+            A27,27 0,0 1,51,54
+            H27
+            A27,27 0,0 1,0,27
+            A27,27 0,0 1,27,0
+            Z"
+        android:fillColor="@color/numpad_red" />
+
+    <!-- Inner -->
+    <path
+        android:pathData="
+            M27,2
+            H51
+            A25,25 0,0 1,76,27
+            A25,25 0,0 1,51,52
+            H27
+            A25,25 0,0 1,2,27
+            A25,25 0,0 1,27,2
+            Z"
+        android:fillColor="@color/numpad_background" />
+
+</vector>

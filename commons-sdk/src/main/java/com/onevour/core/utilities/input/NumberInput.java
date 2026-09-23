@@ -26,7 +26,6 @@ import java.util.concurrent.Executors;
  * Created by zuliadin on 08/10/2016.
  * Updated by zuliadin on 30/01/2021.
  */
-@SuppressLint("ClickableViewAccessibility")
 public class NumberInput implements View.OnTouchListener {
 
     private static final String TAG = NumberInput.class.getSimpleName();
@@ -143,6 +142,7 @@ public class NumberInput implements View.OnTouchListener {
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     public void setup(@NonNull EditText editText, Listener listener, NumberFormat numberFormat, double min, double max) {
         this.context = editText.getRootView().getContext();
         this.listener = listener;

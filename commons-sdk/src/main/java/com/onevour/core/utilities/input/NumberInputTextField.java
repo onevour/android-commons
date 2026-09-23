@@ -12,19 +12,6 @@ import com.onevour.core.utilities.format.NFormat;
 
 import java.text.NumberFormat;
 
-/**
- * EditText that wires itself up to {@link NumberInput} using XML attributes, so no
- * setup() call is needed from the Activity/Fragment:
- * <pre>{@code
- * <com.onevour.core.utilities.input.NumberInputTextField
- *     android:layout_width="match_parent"
- *     android:layout_height="wrap_content"
- *     app:minValue="0"
- *     app:maxValue="100000"
- *     app:isDecimal="true"
- *     app:titleText="Amount" />
- * }</pre>
- */
 public class NumberInputTextField extends AppCompatEditText {
 
     private final NumberInput numberInput = new NumberInput();

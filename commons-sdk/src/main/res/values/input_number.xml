@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="pad_size">65dp</dimen>
+    <dimen name="pad_width">78dp</dimen>
+    <dimen name="pad_heigh">54dp</dimen>
     <dimen name="pad_radius">18dp</dimen>
     <dimen name="pad_line">1dp</dimen>
 </resources>
