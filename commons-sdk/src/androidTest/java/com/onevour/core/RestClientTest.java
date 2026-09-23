@@ -35,37 +35,19 @@ import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
 @RunWith(AndroidJUnit4.class)
-public class RestClientTest {
+public class RestClientTest extends RestBaseTest {
 
     private static final String TAG = RestClientTest.class.getSimpleName();
 
-    private final RestClient client = new RestClient();
-
     private MockWebServer server;
 
-    private String readAsset(Context context, String fileName) throws IOException {
-
-        InputStream inputStream = context.getAssets().open(fileName);
-
-        StringBuilder builder = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-        }
-
-        return builder.toString();
-    }
 
     @Before
     public void setUp() throws IOException {
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
-
         server = new MockWebServer();
         server.enqueue(new MockResponse()
-                .setResponseCode(400)
+                .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
                 .setBody(readAsset(context, "user-response.json")));
         server.start(3000);
@@ -90,10 +72,8 @@ public class RestClientTest {
                     @Override
                     public void onSuccess(HttpResponse<UserResponse> response) {
                         UserResponse body = response.getBody();
-
                         assertEquals(1, body.getId());
                         assertEquals("Budi", body.getName());
-
                         latch.countDown();
                     }
 
@@ -101,7 +81,6 @@ public class RestClientTest {
                     public void onError(HttpErrorResponse httpErrorResponse) {
                         latch.countDown();
                     }
-
 
                 }
         );
@@ -143,8 +122,6 @@ public class RestClientTest {
                         Log.d(TAG, "http: " + httpErrorResponse.getCode() + " | " + httpErrorResponse.getMessage());
                         latch.countDown();
                     }
-
-
                 }
         );
 

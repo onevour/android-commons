@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.onevour.core.rest.components;
+package com.onevour.core.rest.handler;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +11,8 @@ import android.util.Log;
 
 import com.google.gson.JsonSyntaxException;
 
+import com.onevour.core.rest.components.HttpMultipart;
+import com.onevour.core.rest.components.HttpRequest;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.rest.models.HttpErrorResponse;
 import com.onevour.core.rest.models.HttpResponse;
@@ -48,13 +50,13 @@ public class RestExecutor {
     }
 
     @SuppressWarnings({"rawtypes"})
-    public void add(HttpRequest httpRequest) {
+    protected void add(HttpRequest httpRequest) {
         if (null == executor) executor = Executors.newFixedThreadPool(MAX_POOL);
         executor.execute(httpRequest::request);
     }
 
     @SuppressWarnings({"unchecked"})
-    public <T> void add(final HttpMultipart multipart, final HttpListener<T> listener) {
+    protected  <T> void add(final HttpMultipart multipart, final HttpListener<T> listener) {
         if (null == executor) executor = Executors.newFixedThreadPool(MAX_POOL);
         executor.execute(() -> {
             if (null == listener) return;
@@ -64,7 +66,7 @@ public class RestExecutor {
                 multipart.request();
                 List<String> response = multipart.finish();
 
-                HttpResponse<T> responseHttp = new HttpResponse<T>();
+                HttpResponse<T> responseHttp = new HttpResponse<T>(multipart.getHeaderFields());
                 responseHttp.setCode(multipart.getResponseCode());
 
                 for (String s : response) {
@@ -77,14 +79,14 @@ public class RestExecutor {
                     responseHttp.setBody(responseBody);
                     handler.post(() -> listener.onSuccess(responseHttp));
                 } else {
-                    String responseResult = response.toString();
+                    String responseResult = responseString.toString();
                     try {
                         final T jsonResponse = GsonHelper.newInstance().getGson().fromJson(responseResult, responseType);
                         responseHttp.setBody(jsonResponse);
                         handler.post(() -> listener.onSuccess(responseHttp));
                     } catch (JsonSyntaxException e) {
                         HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode(), "Cannot convert response \n:".concat(responseResult));
-                        listener.onError(httpErrorResponse);
+                        handler.post(() -> listener.onError(httpErrorResponse));
                     }
                 }
             } catch (final IOException e) {
@@ -96,14 +98,14 @@ public class RestExecutor {
                 handler.post(() -> listener.onError(httpErrorResponse));
             } catch (JsonSyntaxException e) {
                 HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode());
-                listener.onError(httpErrorResponse);
+                handler.post(() -> listener.onError(httpErrorResponse));
             } finally {
                 Log.d(TAG, "process upload finish");
             }
         });
     }
 
-    public void stop() {
+    protected void stop() {
         executor.shutdown();
     }
 

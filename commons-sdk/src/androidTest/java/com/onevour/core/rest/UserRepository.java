@@ -9,9 +9,9 @@ import com.onevour.core.rest.repository.RestRepository;
 @RestRepository
 public interface UserRepository {
 
-    @Post(url = "http://localhost:3000/users")
+    @Post(key = "http://localhost:3000", url = "/users")
     void create(@Body UserRequest request, HttpListener<UserResponse> callback);
 
-    @Post(url = "http://localhost:3000/users/{id}")
+    @Post(key = "http://localhost:3000", url = "/users/{id}")
     void update(@Path(value = "id") String id, @Body UserRequest request, HttpListener<UserResponse> callback);
 }

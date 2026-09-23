@@ -28,7 +28,7 @@ import java.util.Map;
  *  * POST requests to a web server.
  *  * @author www.codejava.net
  *  *
- *  
+ *
  */
 public class HttpMultipart {
 
@@ -54,7 +54,7 @@ public class HttpMultipart {
      *      * @param requestURL
      *      * @param charset
      *      * @throws IOException
-     *      
+     *
      */
     public HttpMultipart(Context context, String requestURL) throws IOException {
         // creates a unique boundary based on time stamp
@@ -91,7 +91,7 @@ public class HttpMultipart {
         httpConn.setDoOutput(true); // indicates POST method
         httpConn.setDoInput(true);
         httpConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=".concat(boundary));
-        httpConn.setRequestProperty("User-Agent", "Cise-Agent");
+        httpConn.setRequestProperty("User-Agent", "Evo-Agent/1.0");
         httpConn.setConnectTimeout(timeout < MIN_TIMEOUT ? MIN_TIMEOUT : timeout);
         httpConn.setRequestProperty("connection", "close");
     }
@@ -140,7 +140,7 @@ public class HttpMultipart {
      *      * Adds a form field to the request
      *      * @param name field name
      *      * @param value field value
-     *      
+     *
      */
 
     private void addField(String name, String value) {
@@ -169,7 +169,7 @@ public class HttpMultipart {
      *      * @param fieldName name attribute in <input type="file" name="..." />
      *      * @param uploadFile a File to be uploaded
      *      * @throws IOException
-     *      
+     *
      */
 
     private void addFilePart(String fieldName, File uploadFile) throws IOException {
@@ -198,7 +198,7 @@ public class HttpMultipart {
      *      * Adds a header field to the request.
      *      * @param name - name of the header field
      *      * @param value - value of the header field
-     *      
+     *
      */
 
     private void addHeader(String name, String value) {
@@ -211,7 +211,7 @@ public class HttpMultipart {
      *      * @return a list of Strings as response in case the server returned
      *      * status OK, otherwise an exception is thrown.
      *      * @throws IOException
-     *      
+     *
      */
 
     public List<String> finish() throws IOException {
@@ -222,7 +222,11 @@ public class HttpMultipart {
         // checks server's status code first
         int status = httpConn.getResponseCode();
         responseCode = status;
-        if (status == HttpURLConnection.HTTP_OK) {
+        if (responseCode == 204) {
+            return response;
+        }
+        if (responseCode >= 200 && responseCode < 300) {
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
             String line = null;
             while ((line = reader.readLine()) != null) {
@@ -238,5 +242,9 @@ public class HttpMultipart {
 
     public int getResponseCode() {
         return responseCode;
+    }
+
+    public Map<String, List<String>> getHeaderFields() {
+        return httpConn.getHeaderFields();
     }
 }

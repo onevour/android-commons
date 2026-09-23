@@ -1,7 +1,8 @@
-package com.onevour.core.rest.components;
+package com.onevour.core.rest.handler;
 
 import android.util.Log;
 
+import com.onevour.core.rest.components.HttpHeaders;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.rest.models.HttpErrorResponse;
 import com.onevour.core.rest.models.HttpResponse;
@@ -15,8 +16,6 @@ import com.onevour.core.utilities.jwt.JWTTokenRefreshResponse;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.Map;
-
 /**
  * <b>API_TOKEN</b> : set after success login
  * <b>API_TOKEN_REFRESH</b> : set after success login</br>
@@ -29,7 +28,7 @@ public class RestRequestBuilder {
 
     private final RefSession session = new RefSession();
 
-    private Map<String, String> header;
+    private HttpHeaders header;
 
     private String url;
 
@@ -55,7 +54,7 @@ public class RestRequestBuilder {
         return this;
     }
 
-    public RestRequestBuilder get(String url, Map<String, String> header) {
+    public RestRequestBuilder get(String url, HttpHeaders header) {
         this.method = "GET";
         this.url = url;
         this.header = header;
@@ -70,7 +69,7 @@ public class RestRequestBuilder {
         return this;
     }
 
-    public RestRequestBuilder post(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder post(String url, HttpHeaders header, Object body) {
         this.method = "POST";
         this.url = url;
         this.header = header;
@@ -86,7 +85,7 @@ public class RestRequestBuilder {
         return this;
     }
 
-    public RestRequestBuilder put(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder put(String url, HttpHeaders header, Object body) {
         this.method = "PUT";
         this.url = url;
         this.header = header;
@@ -102,7 +101,7 @@ public class RestRequestBuilder {
         return this;
     }
 
-    public RestRequestBuilder delete(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder delete(String url, HttpHeaders header, Object body) {
         this.method = "DELETE";
         this.url = url;
         this.header = header;
@@ -148,7 +147,7 @@ public class RestRequestBuilder {
                     session.saveString("API_TOKEN_REFRESH", newToken.getRefreshToken());
                     // update header
                     if (ValueOf.nonNull(header)) {
-                        header.put("Authorization", "Bearer " + newToken.getAccessToken());
+                        header.add("Authorization", "Bearer " + newToken.getAccessToken());
                     }
                     request();
                     return;

@@ -3,6 +3,9 @@ package com.onevour.core.rest.models;
 
 import com.onevour.core.rest.components.HttpHeaders;
 
+import java.util.List;
+import java.util.Map;
+
 public class HttpResponse<T> {
 
     HttpHeaders headers;
@@ -12,6 +15,10 @@ public class HttpResponse<T> {
     String message;
 
     T body;
+
+    public HttpResponse(Map<String, List<String>> headerFields) {
+        this.headers = new HttpHeaders(headerFields);
+    }
 
     public HttpHeaders getHeaders() {
         return headers;

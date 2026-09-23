@@ -6,7 +6,7 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.onevour.core.rest.components.RestRequest;
+import com.onevour.core.rest.handler.RestRequest;
 import com.onevour.core.rest.models.HttpErrorResponse;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.rest.models.HttpResponse;

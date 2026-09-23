@@ -1,16 +1,15 @@
 package com.onevour.core.rest.builder;
 
 
+import com.onevour.core.rest.handler.RestInvocationHandler;
 import com.onevour.core.rest.repository.RestRepository;
 
 import java.lang.reflect.Proxy;
 
 public final class RestClient {
 
-
     public <T> T create(Class<T> repositoryClass) {
         validateRepository(repositoryClass);
-
         RestInvocationHandler handler = new RestInvocationHandler(repositoryClass);
         return repositoryClass.cast(Proxy.newProxyInstance(repositoryClass.getClassLoader(), new Class<?>[]{repositoryClass}, handler));
     }

@@ -3,7 +3,7 @@ package com.onevour.core;
 import android.util.Log;
 
 import com.onevour.core.utilities.format.NFormat;
-import com.onevour.core.rest.components.RestRequest;
+import com.onevour.core.rest.handler.RestRequest;
 import com.onevour.core.utilities.input.InputDecimal;
 
 import org.junit.Assert;

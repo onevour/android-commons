@@ -15,6 +15,7 @@ import com.onevour.core.rest.listener.HttpListener;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -122,10 +123,14 @@ public class RestParser {
         // header
         HttpHeaders httpHeaders = determineHeaders(method, args);
         if (Objects.nonNull(httpHeaders)) {
-            for (Map.Entry<String, String> entry : httpHeaders.getHeaders().entrySet()) {
+            for (Map.Entry<String, List<String>> entry : httpHeaders.getHeaders().entrySet()) {
                 String key = entry.getKey();
-                String value = entry.getValue();
-                headers.put(key, value);
+                List<String> values = entry.getValue();
+                if (Objects.isNull(values) || values.isEmpty()) continue;
+                for (String value : values) {
+                    headers.add(key, value);
+                }
+
             }
         }
         // listener
@@ -184,9 +189,9 @@ public class RestParser {
         return contentType;
     }
 
-    public Map<String, String> getHeaders() {
-        headers.put("Content-Type", contentType);
-        return headers.getHeaders();
+    public HttpHeaders getHeaders() {
+        headers.putIfAbsent("Content-Type", contentType);
+        return headers;
     }
 
     public Object getBody() {

@@ -5,6 +5,7 @@
  */
 package com.onevour.core.rest.models;
 
+import com.onevour.core.rest.components.HttpHeaders;
 import com.onevour.core.rest.constants.HttpStatusCode;
 
 import java.io.IOException;
@@ -14,6 +15,8 @@ import java.net.MalformedURLException;
  * @author zuliadin
  */
 public class HttpErrorResponse {
+
+    private HttpHeaders headers;
 
     private int code = 0;
 
@@ -34,9 +37,17 @@ public class HttpErrorResponse {
         this.error = error;
     }
 
-    public int getCode() {
-        return code;
+    public HttpErrorResponse(HttpResponse httpResponse) {
+        this.code = httpResponse.code;
+        this.headers = httpResponse.getHeaders();
     }
+
+    public HttpErrorResponse(HttpResponse httpResponse, Exception exception) {
+        this.code = httpResponse.code;
+        this.headers = httpResponse.getHeaders();
+        this.exception = exception;
+    }
+
 
 
     public HttpErrorResponse(int code, MalformedURLException malformedURLException) {
@@ -72,6 +83,14 @@ public class HttpErrorResponse {
         message = HttpStatusCode.getMessage(code);
         this.exception = exception;
         error = exception.getMessage();
+    }
+
+    public HttpHeaders getHeaders() {
+        return headers;
+    }
+
+    public int getCode() {
+        return code;
     }
 
 

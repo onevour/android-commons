@@ -1,8 +1,12 @@
-package com.onevour.core.rest.components;
+package com.onevour.core.rest.handler;
 
+import com.onevour.core.rest.components.HttpHeaders;
+import com.onevour.core.rest.components.HttpMultipart;
+import com.onevour.core.rest.components.HttpRequest;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,11 +26,11 @@ public class RestRequest {
         queue().add(new HttpRequest(url, "GET", null, null, listener));
     }
 
-    public static <T> void get(String url, Map<String, String> header, HttpListener<T> listener) {
+    public static <T> void get(String url, HttpHeaders header, HttpListener<T> listener) {
         queue().add(new HttpRequest(url, "GET", header, null, listener));
     }
 
-    public static <T> void get(String url, int timeout, Map<String, String> header, HttpListener<T> listener) {
+    public static <T> void get(String url, int timeout, HttpHeaders header, HttpListener<T> listener) {
         queue().add(new HttpRequest(url, "GET", timeout, header, null, listener));
     }
 
@@ -39,7 +43,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void post(String url, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void post(String url, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "POST", header, (String) json, listener));
         } else {
@@ -56,7 +60,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void post(String url, int timeout, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void post(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "POST", timeout, header, (String) json, listener));
         } else {
@@ -73,7 +77,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void put(String url, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void put(String url, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "PUT", header, (String) json, listener));
         } else {
@@ -82,7 +86,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void put(String url, int timeout, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void put(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "PUT", timeout, header, (String) json, listener));
         } else {
@@ -91,7 +95,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void patch(String url, int timeout, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void patch(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "PATCH", timeout, header, (String) json, listener));
         } else {
@@ -108,7 +112,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void delete(String url, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void delete(String url, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "DELETE", header, (String) json, listener));
         } else {
@@ -125,7 +129,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void delete(String url, int timeout, Map<String, String> header, T json, HttpListener<E> listener) {
+    public static <T, E> void delete(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "DELETE", timeout, header, (String) json, listener));
         } else {

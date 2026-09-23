@@ -10,8 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.google.gson.JsonParseException;
-
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.rest.models.HttpErrorResponse;
 import com.onevour.core.rest.models.HttpResponse;
@@ -24,10 +22,10 @@ import java.io.OutputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -38,7 +36,7 @@ public class HttpRequest<T> {
 
     private final String TAG = HttpRequest.class.getSimpleName();
 
-    private final int MIN_TIMEOUT = 12000;
+    private final int MIN_TIMEOUT = 6000;
 
     private int timeout = 0;
 
@@ -46,7 +44,7 @@ public class HttpRequest<T> {
 
     private String method;
 
-    private Map<String, String> header;
+    private HttpHeaders header;
 
     private String body;
 
@@ -54,60 +52,60 @@ public class HttpRequest<T> {
 
     // GET
     public HttpRequest(String url, HttpListener<T> listener) {
-        initialize(url, "GET", MIN_TIMEOUT, null, body, listener);
+        initialize(url, "GET", MIN_TIMEOUT, null, null, listener);
     }
 
     // GET
     public HttpRequest(String url, int timeout, HttpListener<T> listener) {
-        initialize(url, "GET", timeout, null, body, listener);
+        initialize(url, "GET", timeout, null, null, listener);
     }
 
     // GET
-    public HttpRequest(String url, Map<String, String> header, HttpListener<T> listener) {
-        initialize(url, "GET", MIN_TIMEOUT, header, body, listener);
+    public HttpRequest(String url, HttpHeaders header, HttpListener<T> listener) {
+        initialize(url, "GET", MIN_TIMEOUT, header, null, listener);
     }
 
     // GET
-    public HttpRequest(String url, int timeout, Map<String, String> header, HttpListener<T> listener) {
-        initialize(url, "GET", timeout, header, body, listener);
+    public HttpRequest(String url, int timeout, HttpHeaders header, HttpListener<T> listener) {
+        initialize(url, "GET", timeout, header, null, listener);
+    }
+
+    // GET
+    public HttpRequest(String url, String body, HttpListener<T> listener) {
+        initialize(url, "GET", MIN_TIMEOUT, null, null, listener);
     }
 
     // POST
-    protected HttpRequest(String url, String body, HttpListener<T> listener) {
-        initialize(url, "GET", MIN_TIMEOUT, null, body, listener);
-    }
-
-    // POST
-    protected HttpRequest(String url, int timeout, String body, HttpListener<T> listener) {
+    public HttpRequest(String url, int timeout, String body, HttpListener<T> listener) {
         initialize(url, "POST", timeout, null, body, listener);
     }
 
     // POST
-    protected HttpRequest(String url, Map<String, String> header, String body, HttpListener<T> listener) {
+    public HttpRequest(String url, HttpHeaders header, String body, HttpListener<T> listener) {
         initialize(url, "POST", MIN_TIMEOUT, header, body, listener);
     }
 
     // POST
-    protected HttpRequest(String url, int timeout, Map<String, String> header, String body, HttpListener<T> listener) {
+    public HttpRequest(String url, int timeout, HttpHeaders header, String body, HttpListener<T> listener) {
         initialize(url, "POST", timeout, header, body, listener);
     }
 
-    // POST
-    protected HttpRequest(String url, String method, int timeout, String body, HttpListener<T> listener) {
+    // DYNAMIC
+    public HttpRequest(String url, String method, int timeout, String body, HttpListener<T> listener) {
         initialize(url, method, timeout, null, body, listener);
     }
 
-    // POST
-    protected HttpRequest(String url, String method, Map<String, String> header, String body, HttpListener<T> listener) {
+    // DYNAMIC
+    public HttpRequest(String url, String method, HttpHeaders header, String body, HttpListener<T> listener) {
         initialize(url, method, MIN_TIMEOUT, header, body, listener);
     }
 
-    // POST
-    protected HttpRequest(String url, String method, int timeout, Map<String, String> header, String body, HttpListener<T> listener) {
+    // DYNAMIC
+    public HttpRequest(String url, String method, int timeout, HttpHeaders header, String body, HttpListener<T> listener) {
         initialize(url, method, timeout, header, body, listener);
     }
 
-    private void initialize(String url, String method, int timeout, Map<String, String> header, String body, HttpListener<T> listener) {
+    private void initialize(String url, String method, int timeout, HttpHeaders header, String body, HttpListener<T> listener) {
         this.endpoint = url;
         this.timeout = timeout;
         this.method = method;
@@ -116,7 +114,7 @@ public class HttpRequest<T> {
         this.listener = listener;
     }
 
-    protected void request() {
+    public void request() {
         if (null == endpoint || "".equalsIgnoreCase(endpoint)) return;
         if (endpoint.startsWith("https")) {
             requestHTTPS();
@@ -135,26 +133,31 @@ public class HttpRequest<T> {
             conn.setConnectTimeout(Math.max(timeout, MIN_TIMEOUT));
             conn.setRequestMethod(method());
             conn.setDoOutput(output());
-            enableJsonProperties(conn);
+            enableAutoClose(conn);
             enableHeader(conn);
             enableBody(conn);
             final int responseCode = conn.getResponseCode();
-            HttpResponse httpResponse = new HttpResponse();
+
+            HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == 204) {
+                successHandler(null, httpResponse, null);
+                return;
+            }
+            if (responseCode >= 200 && responseCode < 300) {
                 buildResponse(conn, response);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
-                errorHandler(responseCode);
+                errorHandler(httpResponse);
             }
-        } catch (final JsonParseException ex) {
-            errorHandler(ex);
-        } catch (final MalformedURLException ex) {
-            errorHandler(ex);
-        } catch (final SocketTimeoutException ex) {
-            errorHandler(ex);
-        } catch (final IOException ex) {
-            errorHandler(ex);
+//        } catch (final JsonParseException ex) {
+//            errorHandler(ex);
+//        } catch (final MalformedURLException ex) {
+//            errorHandler(ex);
+//        } catch (final SocketTimeoutException ex) {
+//            errorHandler(ex);
+//        } catch (final IOException ex) {
+//            errorHandler(ex);
         } catch (final Exception ex) {
             errorHandler(ex);
         } finally {
@@ -172,27 +175,32 @@ public class HttpRequest<T> {
             conn.setConnectTimeout(Math.max(timeout, MIN_TIMEOUT));
             conn.setRequestMethod(method());
             conn.setDoOutput(output());
-            enableJsonProperties(conn);
+            enableAutoClose(conn);
             enableHeader(conn);
             enableSSLOnApiBeforeLollipop(conn);
             enableBody(conn);
             final int responseCode = conn.getResponseCode();
-            HttpResponse httpResponse = new HttpResponse();
+            HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (responseCode == 204) {
+                successHandler(null, httpResponse, null);
+                return;
+            }
+            if (responseCode >= 200 && responseCode < 300) {
+
                 buildResponse(conn, response);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
-                errorHandler(responseCode);
+                errorHandler(httpResponse);
             }
-        } catch (final JsonParseException ex) {
-            errorHandler(ex);
-        } catch (final MalformedURLException ex) {
-            errorHandler(ex);
-        } catch (final SocketTimeoutException ex) {
-            errorHandler(ex);
-        } catch (final IOException ex) {
-            errorHandler(ex);
+//        } catch (final JsonParseException ex) {
+//            errorHandler(ex);
+//        } catch (final MalformedURLException ex) {
+//            errorHandler(ex);
+//        } catch (final SocketTimeoutException ex) {
+//            errorHandler(ex);
+//        } catch (final IOException ex) {
+//            errorHandler(ex);
         } catch (final Exception ex) {
             errorHandler(ex);
         } finally {
@@ -200,8 +208,8 @@ public class HttpRequest<T> {
         }
     }
 
-    private void enableJsonProperties(HttpURLConnection conn) {
-        conn.setRequestProperty("Content-Type", "application/json");
+    private void enableAutoClose(HttpURLConnection conn) {
+        // conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("connection", "close");
     }
 
@@ -232,8 +240,13 @@ public class HttpRequest<T> {
 
     private void enableHeader(HttpURLConnection conn) {
         if (header == null) return;
-        for (Map.Entry<String, String> entry : header.entrySet()) {
-            conn.setRequestProperty(entry.getKey(), entry.getValue());
+
+        for (Map.Entry<String, List<String>> entry : header.getHeaders().entrySet()) {
+            List<String> values = entry.getValue();
+            for (String value : values) {
+                conn.setRequestProperty(entry.getKey(), value);
+            }
+
         }
     }
 
@@ -254,29 +267,48 @@ public class HttpRequest<T> {
     @SuppressWarnings("unchecked")
     private void successHandler(Type responseType, HttpResponse httpResponse, StringBuffer response) {
         new Handler(Looper.getMainLooper()).post(() -> {
-            if (null == listener) return;
-            if (null == responseType) {
+            if (Objects.isNull(listener)) {
+                Log.d(TAG, "listener not implement");
+                return;
+            }
+            if (Objects.isNull(responseType) && Objects.isNull(response)) {
+                listener.onSuccess(httpResponse);
+                return;
+            }
+            if (Objects.isNull(responseType)) {
                 T body = (T) response.toString();
                 httpResponse.setBody(body);
                 listener.onSuccess(httpResponse);
             } else {
-                final T jsonResponse = GsonHelper.newInstance().getGson().fromJson(response.toString().trim(), responseType);
-                httpResponse.setBody(jsonResponse);
-                listener.onSuccess(httpResponse);
+                try {
+                    final T jsonResponse = GsonHelper.newInstance().getGson().fromJson(response.toString().trim(), responseType);
+                    httpResponse.setBody(jsonResponse);
+                    listener.onSuccess(httpResponse);
+                } catch (Exception e) {
+                    HttpErrorResponse errorResponse = new HttpErrorResponse(httpResponse);
+                    listener.onError(errorResponse);
+                }
+
             }
         });
     }
 
     private void errorHandler(Exception error) {
-        if (null == listener) return;
+        if (Objects.isNull(listener)) {
+            Log.d(TAG, "listener not implement");
+            return;
+        }
         new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(0, error)));
         Log.e(TAG, error.getMessage(), error);
     }
 
-    private void errorHandler(int errorCode) {
-        if (null == listener) return;
-        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(errorCode)));
-        Log.e(TAG, "error hit api ".concat(endpoint).concat(" | ").concat(String.valueOf(errorCode)).concat(" | ").concat(method()));
+    private void errorHandler(HttpResponse httpResponse) {
+        if (Objects.isNull(listener)) {
+            Log.d(TAG, "listener not implement");
+            return;
+        }
+        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(httpResponse)));
+        Log.e(TAG, "error hit api ".concat(endpoint).concat(" | ").concat(String.valueOf(httpResponse)).concat(" | ").concat(method()));
     }
 
     /**
