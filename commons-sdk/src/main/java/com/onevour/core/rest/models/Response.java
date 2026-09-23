@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.models;
 
 import com.google.gson.annotations.Expose;
 

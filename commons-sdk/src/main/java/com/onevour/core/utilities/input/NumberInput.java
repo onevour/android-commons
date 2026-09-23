@@ -154,9 +154,9 @@ public class NumberInput implements View.OnTouchListener {
         this.editText.setOnTouchListener(this);
         alert.init(context, numberFormat, min, max, viewListener);
         if (isDecimal()) {
-            adapter = new InputDouble(numberFormat, min, max);
+            adapter = new InputDecimal(numberFormat, min, max);
         } else {
-            adapter = new InputInteger((int) min, (int) max);
+            adapter = new InputNumeric((int) min, (int) max);
         }
     }
 

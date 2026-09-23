@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.components;
 
 import android.os.Build;
 import android.os.Handler;
@@ -12,6 +12,9 @@ import android.util.Log;
 
 import com.google.gson.JsonParseException;
 
+import com.onevour.core.rest.listener.HttpListener;
+import com.onevour.core.rest.models.HttpErrorResponse;
+import com.onevour.core.rest.models.HttpResponse;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 
 import java.io.BufferedReader;
@@ -136,9 +139,11 @@ public class HttpRequest<T> {
             enableHeader(conn);
             enableBody(conn);
             final int responseCode = conn.getResponseCode();
+            HttpResponse httpResponse = new HttpResponse();
+            httpResponse.setCode(responseCode);
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 buildResponse(conn, response);
-                successHandler(getResponseType(), response);
+                successHandler(getResponseType(), httpResponse, response);
             } else {
                 errorHandler(responseCode);
             }
@@ -172,9 +177,11 @@ public class HttpRequest<T> {
             enableSSLOnApiBeforeLollipop(conn);
             enableBody(conn);
             final int responseCode = conn.getResponseCode();
+            HttpResponse httpResponse = new HttpResponse();
+            httpResponse.setCode(responseCode);
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 buildResponse(conn, response);
-                successHandler(getResponseType(), response);
+                successHandler(getResponseType(), httpResponse, response);
             } else {
                 errorHandler(responseCode);
             }
@@ -245,27 +252,30 @@ public class HttpRequest<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void successHandler(Type responseType, StringBuffer response) {
+    private void successHandler(Type responseType, HttpResponse httpResponse, StringBuffer response) {
         new Handler(Looper.getMainLooper()).post(() -> {
             if (null == listener) return;
             if (null == responseType) {
-                listener.onSuccess((T) response.toString());
+                T body = (T) response.toString();
+                httpResponse.setBody(body);
+                listener.onSuccess(httpResponse);
             } else {
                 final T jsonResponse = GsonHelper.newInstance().getGson().fromJson(response.toString().trim(), responseType);
-                listener.onSuccess(jsonResponse);
+                httpResponse.setBody(jsonResponse);
+                listener.onSuccess(httpResponse);
             }
         });
     }
 
     private void errorHandler(Exception error) {
         if (null == listener) return;
-        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new Error(error)));
+        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(0, error)));
         Log.e(TAG, error.getMessage(), error);
     }
 
     private void errorHandler(int errorCode) {
         if (null == listener) return;
-        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new Error(errorCode)));
+        new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(errorCode)));
         Log.e(TAG, "error hit api ".concat(endpoint).concat(" | ").concat(String.valueOf(errorCode)).concat(" | ").concat(method()));
     }
 

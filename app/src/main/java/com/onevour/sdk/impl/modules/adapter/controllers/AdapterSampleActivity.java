@@ -88,7 +88,7 @@ public class AdapterSampleActivity extends AppCompatActivity implements AdapterG
             if (resultSuccess) {
                 adapter.setValue(list);
             } else {
-//                adapter.er("Error, tap for reload");
+//                adapter.er("HttpErrorResponse, tap for reload");
             }
 
         }, 2000);

@@ -1,11 +1,10 @@
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.components;
 
 /**
  * Created by Zuliadin on 06/06/2017.
  */
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
 
 import java.io.BufferedReader;

@@ -133,7 +133,7 @@ public class ChatActivity extends AppCompatActivity {
                     break;
 
                 case ERROR:
-                    Log.e(TAG, "Error", lifecycleEvent.getException());
+                    Log.e(TAG, "HttpErrorResponse", lifecycleEvent.getException());
                     error.set(true);
 
                     break;

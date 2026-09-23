@@ -347,7 +347,7 @@ public class BluetoothSDKService extends Service {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
             } catch (IOException e) {
-                pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Error getting streams");
+                pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "HttpErrorResponse getting streams");
             }
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
@@ -382,7 +382,7 @@ public class BluetoothSDKService extends Service {
             } catch (IOException e) {
                 status = 0;
                 pushBroadcastMessage(BluetoothUtils.ACTION_DEVICE_DISCONNECTED, null, "diconnected");
-                pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "Error occurred when sending data");
+                pushBroadcastMessage(BluetoothUtils.ACTION_CONNECTION_ERROR, null, "HttpErrorResponse occurred when sending data");
             }
         }
 

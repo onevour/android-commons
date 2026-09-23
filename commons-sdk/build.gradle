@@ -56,10 +56,12 @@ dependencies {
     implementation 'joda-time:joda-time:2.12.5'
     implementation 'org.greenrobot:eventbus:3.3.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.1'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:4.5.1'
-    testImplementation group: 'org.powermock', name: 'powermock-mockito-release-full', version: '1.6.4', ext: 'pom'
-    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.7'
 
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+
+    // test
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
 }

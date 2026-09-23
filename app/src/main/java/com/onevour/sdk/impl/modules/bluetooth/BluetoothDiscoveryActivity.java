@@ -229,7 +229,7 @@ public class BluetoothDiscoveryActivity extends AppCompatActivity implements Ada
             toast("Success attempt secondary connection");
             return true;
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | IOException e) {
-            // toast("Error attempt connection");
+            // toast("HttpErrorResponse attempt connection");
             return false;
         }
     }

@@ -6,9 +6,10 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.onevour.core.utilities.http.ApiRequest;
-import com.onevour.core.utilities.http.Error;
-import com.onevour.core.utilities.http.HttpListener;
+import com.onevour.core.rest.components.RestRequest;
+import com.onevour.core.rest.models.HttpErrorResponse;
+import com.onevour.core.rest.listener.HttpListener;
+import com.onevour.core.rest.models.HttpResponse;
 import com.onevour.sdk.impl.databinding.ActivityFragmentBottomBinding;
 
 
@@ -32,15 +33,15 @@ public class FragmentBottomActivity extends AppCompatActivity {
 
     //@OnClick(R.id.btn_show)
     public void onBtnShowClicked(View view) {
-        ApiRequest.post("https://api.digitalrecordcard.com/index.php/api_v1/login", new String(""), new HttpListener<String>() {
+        RestRequest.post("https://api.digitalrecordcard.com/index.php/api_v1/login", new String(""), new HttpListener<String>() {
             @Override
-            public void onSuccess(String response) {
+            public void onSuccess(HttpResponse response, String responseBody) {
                 Log.d("API-TEST", response);
             }
 
             @Override
-            public void onError(Error error) {
-                Log.e("API-TEST", error.getMessage());
+            public void onError(HttpErrorResponse httpErrorResponse) {
+                Log.e("API-TEST", httpErrorResponse.getMessage());
             }
         });
     }

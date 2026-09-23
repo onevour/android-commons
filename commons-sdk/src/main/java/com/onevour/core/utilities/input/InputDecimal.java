@@ -13,9 +13,9 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class InputDouble implements NumberInputAdapter {
+public class InputDecimal implements NumberInputAdapter {
 
-    private static final String TAG = InputDouble.class.getSimpleName();
+    private static final String TAG = InputDecimal.class.getSimpleName();
 
     private final int decrease = 10;
 
@@ -33,7 +33,7 @@ public class InputDouble implements NumberInputAdapter {
 
     private double max = Double.MAX_VALUE;
 
-    public InputDouble(NumberFormat numberFormat, double min, double max) {
+    public InputDecimal(NumberFormat numberFormat, double min, double max) {
         value.set(BigDecimal.valueOf(0.00));
         if (!(numberFormat instanceof DecimalFormat)) {
             throw new IllegalArgumentException("numberFormat must be a DecimalFormat instance");

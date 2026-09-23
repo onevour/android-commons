@@ -26,7 +26,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.onevour.core.utilities.commons.ContextHelper;
 import com.onevour.core.utilities.commons.RefSession;
 import com.onevour.core.utilities.commons.ValueOf;
-import com.onevour.core.utilities.http.ApiRequestBuilder;
+import com.onevour.core.rest.components.RestRequestBuilder;
 import com.onevour.core.utilities.ui.adapter.layout.AutoFitGridLayoutManager;
 import com.onevour.core.components.recycleview.AdapterGeneric;
 import com.onevour.core.components.recycleview.RecyclerViewScrollListener;
@@ -263,8 +263,8 @@ public class BaseActivity extends AppCompatActivity {
         return sb.toString();
     }
 
-    protected ApiRequestBuilder api() {
-        return new ApiRequestBuilder();
+    protected RestRequestBuilder api() {
+        return new RestRequestBuilder();
     }
 
     protected void shortToast(String message) {

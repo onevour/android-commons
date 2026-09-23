@@ -1,13 +1,18 @@
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.components;
 
 import android.util.Log;
 
+import com.onevour.core.rest.listener.HttpListener;
+import com.onevour.core.rest.models.HttpErrorResponse;
+import com.onevour.core.rest.models.HttpResponse;
+import com.onevour.core.rest.models.Response;
 import com.onevour.core.utilities.commons.ValueOf;
 import com.onevour.core.utilities.eventbus.MessageEvent;
 import com.onevour.core.utilities.commons.RefSession;
 import com.onevour.core.utilities.jwt.JWTCommons;
 import com.onevour.core.utilities.jwt.JWTTokenRefreshRequest;
 import com.onevour.core.utilities.jwt.JWTTokenRefreshResponse;
+
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.Map;
@@ -18,9 +23,9 @@ import java.util.Map;
  * <b>API_TOKEN_REFRESH_URL</b> : token refresh url, set on create application</br>
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class ApiRequestBuilder {
+public class RestRequestBuilder {
 
-    private final String TAG = ApiRequestBuilder.class.getSimpleName();
+    private final String TAG = RestRequestBuilder.class.getSimpleName();
 
     private final RefSession session = new RefSession();
 
@@ -36,28 +41,28 @@ public class ApiRequestBuilder {
 
     private HttpListener listener;
 
-    public ApiRequestBuilder validateToken() {
+    public RestRequestBuilder validateToken() {
         String refreshToken = session.findString("API_TOKEN");
         this.validateToken = JWTCommons.isExpired(refreshToken);
         Log.d(TAG, "token expired add new request " + validateToken);
         return this;
     }
 
-    public ApiRequestBuilder get(String url) {
+    public RestRequestBuilder get(String url) {
         this.method = "GET";
         this.url = url;
         this.header = null;
         return this;
     }
 
-    public ApiRequestBuilder get(String url, Map<String, String> header) {
+    public RestRequestBuilder get(String url, Map<String, String> header) {
         this.method = "GET";
         this.url = url;
         this.header = header;
         return this;
     }
 
-    public ApiRequestBuilder post(String url, Object body) {
+    public RestRequestBuilder post(String url, Object body) {
         this.method = "POST";
         this.url = url;
         this.header = null;
@@ -65,7 +70,7 @@ public class ApiRequestBuilder {
         return this;
     }
 
-    public ApiRequestBuilder post(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder post(String url, Map<String, String> header, Object body) {
         this.method = "POST";
         this.url = url;
         this.header = header;
@@ -73,7 +78,7 @@ public class ApiRequestBuilder {
         return this;
     }
 
-    public ApiRequestBuilder put(String url, Object body) {
+    public RestRequestBuilder put(String url, Object body) {
         this.method = "PUT";
         this.url = url;
         this.header = null;
@@ -81,7 +86,7 @@ public class ApiRequestBuilder {
         return this;
     }
 
-    public ApiRequestBuilder put(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder put(String url, Map<String, String> header, Object body) {
         this.method = "PUT";
         this.url = url;
         this.header = header;
@@ -89,7 +94,7 @@ public class ApiRequestBuilder {
         return this;
     }
 
-    public ApiRequestBuilder delete(String url, Object body) {
+    public RestRequestBuilder delete(String url, Object body) {
         this.method = "DELETE";
         this.url = url;
         this.header = null;
@@ -97,7 +102,7 @@ public class ApiRequestBuilder {
         return this;
     }
 
-    public ApiRequestBuilder delete(String url, Map<String, String> header, Object body) {
+    public RestRequestBuilder delete(String url, Map<String, String> header, Object body) {
         this.method = "DELETE";
         this.url = url;
         this.header = header;
@@ -112,9 +117,10 @@ public class ApiRequestBuilder {
         JWTTokenRefreshRequest request = new JWTTokenRefreshRequest();
         request.setRefreshToken(refreshToken);
         Log.d(TAG, "request token refresh with id " + refreshToken);
-        ApiRequest.post(refreshTokenUrl, request, new HttpListener<Response<JWTTokenRefreshResponse>>() {
+        RestRequest.post(refreshTokenUrl, request, new HttpListener<Response<JWTTokenRefreshResponse>>() {
             @Override
-            public void onSuccess(Response<JWTTokenRefreshResponse> response) {
+            public void onSuccess(HttpResponse<Response<JWTTokenRefreshResponse>> httpResponse) {
+                Response<JWTTokenRefreshResponse> response = httpResponse.getBody();
                 Log.d(TAG, "request token refresh " + response.getCode() + " | " + response.getMessage());
                 if (404 == response.getCode()) {
                     EventBus.getDefault().post(new MessageEvent("LOGOUT_EXPIRED"));
@@ -151,33 +157,36 @@ public class ApiRequestBuilder {
             }
 
             @Override
-            public void onError(Error error) {
-                Log.e(TAG, "request token refresh " + error.getMessage());
+            public void onError(HttpErrorResponse httpErrorResponse) {
+                Log.e(TAG, "request token refresh " + httpErrorResponse.getMessage());
                 if (ValueOf.isNull(listener)) return;
-                listener.onError(error);
+                listener.onError(httpErrorResponse);
             }
         });
     }
 
     private void error(int code, String message) {
         if (ValueOf.isNull(listener)) return;
-        Error error = new Error(code);
-        error.setMessage(message);
-        listener.onError(error);
+        HttpErrorResponse httpErrorResponse = new HttpErrorResponse(code, message);
+
+        listener.onError(httpErrorResponse);
     }
 
     private void request() {
         if ("GET".equalsIgnoreCase(method)) {
-            ApiRequest.get(url, header, listener);
+            RestRequest.get(url, 60, header, listener);
         }
         if ("POST".equalsIgnoreCase(method)) {
-            ApiRequest.post(url, header, body, listener);
+            RestRequest.post(url, 60, header, body, listener);
+        }
+        if ("PATCH".equalsIgnoreCase(method)) {
+            RestRequest.patch(url, 60, header, body, listener);
         }
         if ("PUT".equalsIgnoreCase(method)) {
-            ApiRequest.put(url, header, body, listener);
+            RestRequest.put(url, 60, header, body, listener);
         }
         if ("DELETE".equalsIgnoreCase(method)) {
-            ApiRequest.delete(url, header, body, listener);
+            RestRequest.delete(url, 60, header, body, listener);
         }
     }
 

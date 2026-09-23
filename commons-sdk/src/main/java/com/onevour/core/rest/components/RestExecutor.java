@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.components;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +11,9 @@ import android.util.Log;
 
 import com.google.gson.JsonSyntaxException;
 
+import com.onevour.core.rest.listener.HttpListener;
+import com.onevour.core.rest.models.HttpErrorResponse;
+import com.onevour.core.rest.models.HttpResponse;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 
 import java.io.IOException;
@@ -23,25 +26,25 @@ import java.util.concurrent.Executors;
 /**
  * @author Zuliadin
  */
-public class ApiQueue {
+public class RestExecutor {
 
-    private static final String TAG = ApiQueue.class.getSimpleName();
+    private static final String TAG = RestExecutor.class.getSimpleName();
 
     private final int MAX_POOL = 16;
 
-    private static ApiQueue apiQueue;
+    private static RestExecutor restExecutor;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private ExecutorService executor = Executors.newFixedThreadPool(MAX_POOL);
 
-    private ApiQueue() {
+    private RestExecutor() {
         if (null == executor) executor = Executors.newFixedThreadPool(MAX_POOL);
     }
 
-    public static ApiQueue newInstance() {
-        if (null == apiQueue) apiQueue = new ApiQueue();
-        return apiQueue;
+    public static RestExecutor newInstance() {
+        if (null == restExecutor) restExecutor = new RestExecutor();
+        return restExecutor;
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -60,33 +63,40 @@ public class ApiQueue {
             try {
                 multipart.request();
                 List<String> response = multipart.finish();
+
+                HttpResponse<T> responseHttp = new HttpResponse<T>();
+                responseHttp.setCode(multipart.getResponseCode());
+
                 for (String s : response) {
                     responseString.append(s);
                 }
                 final Type responseType = getResponseType(listener);
                 Log.d(TAG, responseString.toString());
                 if (null == responseType) {
-                    handler.post(() -> listener.onSuccess((T) responseString.toString()));
+                    T responseBody = (T) responseString.toString();
+                    responseHttp.setBody(responseBody);
+                    handler.post(() -> listener.onSuccess(responseHttp));
                 } else {
                     String responseResult = response.toString();
                     try {
                         final T jsonResponse = GsonHelper.newInstance().getGson().fromJson(responseResult, responseType);
-                        handler.post(() -> listener.onSuccess(jsonResponse));
+                        responseHttp.setBody(jsonResponse);
+                        handler.post(() -> listener.onSuccess(responseHttp));
                     } catch (JsonSyntaxException e) {
-                        Error error = new Error(multipart.getResponseCode());
-                        error.setMessage("Cannot convert response \n:".concat(responseResult));
-                        listener.onError(error);
+                        HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode(), "Cannot convert response \n:".concat(responseResult));
+                        listener.onError(httpErrorResponse);
                     }
                 }
             } catch (final IOException e) {
+
                 for (StackTraceElement s : e.getStackTrace()) {
                     Log.e(TAG, String.valueOf(s));
                 }
-                Error error = new Error(e);
-                handler.post(() -> listener.onError(error));
+                HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode(), e);
+                handler.post(() -> listener.onError(httpErrorResponse));
             } catch (JsonSyntaxException e) {
-                Error error = new Error(multipart.getResponseCode());
-                listener.onError(error);
+                HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode());
+                listener.onError(httpErrorResponse);
             } finally {
                 Log.d(TAG, "process upload finish");
             }

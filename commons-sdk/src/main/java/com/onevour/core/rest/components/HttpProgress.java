@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.http;
+package com.onevour.core.rest.components;
 
 import java.io.IOException;
 import java.io.InputStream;

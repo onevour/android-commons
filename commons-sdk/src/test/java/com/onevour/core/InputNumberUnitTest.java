@@ -3,8 +3,8 @@ package com.onevour.core;
 import android.util.Log;
 
 import com.onevour.core.utilities.format.NFormat;
-import com.onevour.core.utilities.http.ApiRequest;
-import com.onevour.core.utilities.input.InputDouble;
+import com.onevour.core.rest.components.RestRequest;
+import com.onevour.core.utilities.input.InputDecimal;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import java.text.NumberFormat;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(MockitoJUnitRunner.class)
-@PrepareForTest({Log.class, ApiRequest.class})
+@PrepareForTest({Log.class, RestRequest.class})
 public class InputNumberUnitTest {
 
     @Mock
@@ -30,7 +30,7 @@ public class InputNumberUnitTest {
     @Test
     public void test_number_input_double() throws Exception {
         NumberFormat format = NFormat.currency();
-        InputDouble input = new InputDouble(format, 0.0, Double.MAX_VALUE);
+        InputDecimal input = new InputDecimal(format, 0.0, Double.MAX_VALUE);
         input.append("1", ".", "5", "6");
         System.out.println("input " + input.getValue().toPlainString());
         input.delete();
@@ -60,7 +60,7 @@ public class InputNumberUnitTest {
     @Test
     public void test_number_input_double_after_decimal() throws Exception {
         NumberFormat format = NFormat.currency();
-        InputDouble input = new InputDouble(format, 0.0, Double.MAX_VALUE);
+        InputDecimal input = new InputDecimal(format, 0.0, Double.MAX_VALUE);
         input.append(".", "5", "6");
         System.out.println("input " + input.getValue().toPlainString());
         input.delete();

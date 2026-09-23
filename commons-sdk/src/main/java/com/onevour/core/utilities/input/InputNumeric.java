@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class InputInteger implements NumberInputAdapter {
+public class InputNumeric implements NumberInputAdapter {
 
     private static final String TAG = "NID-INT";
 
@@ -18,7 +18,7 @@ public class InputInteger implements NumberInputAdapter {
 
     private int min, max;
 
-    public InputInteger(int min, int max) {
+    public InputNumeric(int min, int max) {
         this.min = min;
         this.max = max;
     }

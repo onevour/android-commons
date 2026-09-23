@@ -25,7 +25,7 @@ public class JWTCommons {
             Seconds seconds = Seconds.secondsBetween(new DateTime(), new DateTime(date));
             Log.d(TAG, "exp: " + jwtBody.getExp() + " | " + seconds.getSeconds());
         } catch (UnsupportedEncodingException e) {
-            //Error
+            //HttpErrorResponse
         }
     }
 
@@ -48,7 +48,7 @@ public class JWTCommons {
             Log.d(TAG, "exp: " + jwtBody.getExp() + " | " + seconds.getSeconds());
             return seconds.getSeconds() < 0;
         } catch (UnsupportedEncodingException e) {
-            //Error
+            //HttpErrorResponse
             return true;
         }
     }
