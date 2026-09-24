@@ -1,30 +1,16 @@
 package com.onevour.core;
 
-import android.util.Log;
-
 import com.onevour.core.utilities.format.NFormat;
-import com.onevour.core.rest.handler.RestRequest;
 import com.onevour.core.utilities.input.InputDecimal;
+import com.onevour.core.utilities.input.InputNumeric;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-//import org.mockito.Mock;
-//import org.mockito.junit.MockitoJUnitRunner;
-//import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.text.NumberFormat;
+import java.util.Locale;
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-//@RunWith(AndroidJUnit4.class)      // ✅
 public class InputNumberUnitTest {
-
-//    @Mock
-//    Log log;
 
     @Test
     public void test_number_input_double() throws Exception {
@@ -85,4 +71,74 @@ public class InputNumberUnitTest {
         Assert.assertEquals(1.0, input.getValueDouble(), 0.0);
     }
 
+    @Test
+    public void test_numeric_input_integer() {
+        InputNumeric input = new InputNumeric(0, 1000);
+        input.append("1");
+        input.append("2");
+        input.append("5");
+        Assert.assertEquals(125, input.getValueInteger());
+
+        input.delete();
+        Assert.assertEquals(12, input.getValueInteger());
+
+        input.setValueToMax();
+        Assert.assertEquals(1000, input.getValueInteger());
+    }
+
+    @Test
+    public void test_number_input_max_value() throws Exception {
+        NumberFormat format = NFormat.currency();
+        InputDecimal input = new InputDecimal(format, 0.0, 100.0);
+        input.setValueToMax();
+        Assert.assertEquals(100.0, input.getValueDouble(), 0.0);
+    }
+
+    @Test
+    public void test_input_decimal_indonesian_locale() throws Exception {
+        // Locale Indonesia menggunakan koma ',' sebagai pemisah desimal
+        NumberFormat formatID = NumberFormat.getNumberInstance(new Locale("id", "ID"));
+        formatID.setMinimumFractionDigits(2);
+        formatID.setMaximumFractionDigits(2);
+
+        InputDecimal input = new InputDecimal(formatID, 0.0, Double.MAX_VALUE);
+        // Test append dengan koma desimal
+        input.append("1", ",", "5", "6");
+        Assert.assertEquals(1.56, input.getValueDouble(), 0.0);
+        Assert.assertEquals("1,56", input.getValueString());
+
+        // Test delete desimal
+        input.delete();
+        Assert.assertEquals(1.50, input.getValueDouble(), 0.0);
+        Assert.assertEquals("1,50", input.getValueString());
+
+        // Test setValue string terformat Indonesia
+        input.setValue("10,75");
+        Assert.assertEquals(10.75, input.getValueDouble(), 0.0);
+        Assert.assertEquals("10,75", input.getValueString());
+    }
+
+    @Test
+    public void test_input_decimal_us_locale() throws Exception {
+        // Locale US menggunakan titik '.' sebagai pemisah desimal
+        NumberFormat formatUS = NumberFormat.getNumberInstance(Locale.US);
+        formatUS.setMinimumFractionDigits(2);
+        formatUS.setMaximumFractionDigits(2);
+
+        InputDecimal input = new InputDecimal(formatUS, 0.0, Double.MAX_VALUE);
+        // Test append dengan titik desimal
+        input.append("1", ".", "5", "6");
+        Assert.assertEquals(1.56, input.getValueDouble(), 0.0);
+        Assert.assertEquals("1.56", input.getValueString());
+
+        // Test delete desimal
+        input.delete();
+        Assert.assertEquals(1.50, input.getValueDouble(), 0.0);
+        Assert.assertEquals("1.50", input.getValueString());
+
+        // Test setValue string terformat US
+        input.setValue("10.75");
+        Assert.assertEquals(10.75, input.getValueDouble(), 0.0);
+        Assert.assertEquals("10.75", input.getValueString());
+    }
 }

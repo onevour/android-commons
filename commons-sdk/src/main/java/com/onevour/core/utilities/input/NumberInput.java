@@ -13,7 +13,10 @@ import android.widget.EditText;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import com.onevour.core.R;
 import com.onevour.core.utilities.commons.ValueOf;
 
 import java.text.NumberFormat;
@@ -152,12 +155,24 @@ public class NumberInput implements View.OnTouchListener {
         this.editText.setCursorVisible(false);
         this.editText.setFocusable(false);
         this.editText.setOnTouchListener(this);
+
+        ViewCompat.replaceAccessibilityAction(
+                this.editText,
+                AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK,
+                context.getString(R.string.cd_open_numpad),
+                null
+        );
+
         alert.init(context, numberFormat, min, max, viewListener);
         if (isDecimal()) {
             adapter = new InputDecimal(numberFormat, min, max);
         } else {
             adapter = new InputNumeric((int) min, (int) max);
         }
+    }
+
+    public void setStyle(NumberInputStyle style) {
+        alert.applyStyle(style);
     }
 
     public void updateMinMax(int min, int max) {

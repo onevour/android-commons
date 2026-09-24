@@ -9,5 +9,14 @@
         <attr name="isDecimal" format="boolean" />
         <attr name="titleText" format="string" />
         <attr name="isShowMax" format="boolean" />
+        <attr name="dialogFontFamily" format="reference" />
+        <attr name="dialogBackground" format="color|reference" />
+        <attr name="dialogTitleColor" format="color" />
+        <attr name="dialogTitleTextSize" format="dimension" />
+        <attr name="dialogResultColor" format="color" />
+        <attr name="dialogResultTextSize" format="dimension" />
+        <attr name="dialogKeyTextColor" format="color" />
+        <attr name="dialogKeyTextSize" format="dimension" />
+        <attr name="dialogKeyBackground" format="color|reference" />
     </declare-styleable>
 </resources>

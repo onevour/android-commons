@@ -5,4 +5,8 @@
     <string name="empty" />
     <string name="reload">Reload!</string>
     <string name="cancel">Cancel</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_decimal_point">Decimal point</string>
+    <string name="cd_submit">Submit</string>
+    <string name="cd_open_numpad">Open number keypad</string>
 </resources>
