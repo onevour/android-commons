@@ -2,7 +2,10 @@ package com.onevour.core.utilities.input;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.RippleDrawable;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -148,6 +151,12 @@ public class NumberInputView implements View.OnClickListener {
         });
     }
 
+    private Drawable createRippleDrawable(Drawable content) {
+        if (content == null) return null;
+        ColorStateList rippleColor = ColorStateList.valueOf(0x33888888);
+        return new RippleDrawable(rippleColor, content, null);
+    }
+
     public void applyStyle(NumberInputStyle style) {
         this.currentStyle = style;
         if (style == null) return;
@@ -188,6 +197,7 @@ public class NumberInputView implements View.OnClickListener {
             for (TextView key : numKeys) {
                 if (key != null) key.setTextColor(style.getKeyTextColor());
             }
+            if (del != null) del.setColorFilter(style.getKeyTextColor());
         }
 
         if (style.getKeyTextSizePx() != null) {
@@ -201,13 +211,16 @@ public class NumberInputView implements View.OnClickListener {
             for (TextView key : numKeys) {
                 if (key != null) {
                     Drawable.ConstantState cs = keyBg.getConstantState();
-                    Drawable drawable = cs != null ? cs.newDrawable().mutate() : keyBg;
-                    key.setBackground(drawable);
+                    Drawable content = cs != null ? cs.newDrawable().mutate() : keyBg;
+                    key.setBackground(createRippleDrawable(content));
                 }
             }
         } else if (style.getKeyBackgroundColor() != null) {
             for (TextView key : numKeys) {
-                if (key != null) key.setBackgroundColor(style.getKeyBackgroundColor());
+                if (key != null) {
+                    ColorDrawable content = new ColorDrawable(style.getKeyBackgroundColor());
+                    key.setBackground(createRippleDrawable(content));
+                }
             }
         }
     }
@@ -271,7 +284,7 @@ public class NumberInputView implements View.OnClickListener {
         if (numPoint == null) return;
         if (isAfterPoint) {
             numPoint.setTextColor(ContextCompat.getColor(context, R.color.numpad_red));
-            numPoint.setBackgroundResource(R.drawable.numpad_outline_red);
+            numPoint.setBackgroundResource(R.drawable.numpad_red_ripple);
         } else {
             if (currentStyle != null && currentStyle.getKeyTextColor() != null) {
                 numPoint.setTextColor(currentStyle.getKeyTextColor());
@@ -279,11 +292,14 @@ public class NumberInputView implements View.OnClickListener {
                 numPoint.setTextColor(ContextCompat.getColor(context, R.color.numpad_black));
             }
             if (currentStyle != null && currentStyle.getKeyBackgroundDrawable() != null) {
-                numPoint.setBackground(currentStyle.getKeyBackgroundDrawable().getConstantState().newDrawable().mutate());
+                Drawable.ConstantState cs = currentStyle.getKeyBackgroundDrawable().getConstantState();
+                Drawable content = cs != null ? cs.newDrawable().mutate() : currentStyle.getKeyBackgroundDrawable();
+                numPoint.setBackground(createRippleDrawable(content));
             } else if (currentStyle != null && currentStyle.getKeyBackgroundColor() != null) {
-                numPoint.setBackgroundColor(currentStyle.getKeyBackgroundColor());
+                ColorDrawable content = new ColorDrawable(currentStyle.getKeyBackgroundColor());
+                numPoint.setBackground(createRippleDrawable(content));
             } else {
-                numPoint.setBackgroundResource(R.drawable.numpad_outline);
+                numPoint.setBackgroundResource(R.drawable.numpad_ripple);
             }
         }
     }
