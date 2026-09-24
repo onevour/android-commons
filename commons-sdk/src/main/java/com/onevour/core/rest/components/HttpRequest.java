@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -74,6 +75,17 @@ public class HttpRequest<T> {
         } else {
             requestHTTP();
         }
+    }
+
+    private String getMediaType(String contentType) {
+        if (contentType == null) {
+            return null;
+        }
+
+        return contentType
+                .split(";", 2)[0]
+                .trim()
+                .toLowerCase();
     }
 
     private void requestHTTP() {
@@ -234,14 +246,14 @@ public class HttpRequest<T> {
                 }
                 HttpHeaders headers = httpResponse.getHeaders();
                 String contentType = headers.get("Content-Type");
+                String getMediaType = getMediaType(contentType);
                 // unknow content type response
                 if (Objects.isNull(contentType)) {
                     T body = (T) response.toString();
                     httpResponse.setBody(body);
                     listener.onSuccess(httpResponse);
                 }
-                if ("application/json".equalsIgnoreCase(contentType)) {
-
+                if ("application/json".equalsIgnoreCase(getMediaType)) {
                     if (Objects.isNull(responseType)) {
                         T body = (T) response.toString();
                         httpResponse.setBody(body);
