@@ -1,7 +1,10 @@
 package com.onevour.core.utilities.input;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -37,7 +40,9 @@ public class NumberInputView implements View.OnClickListener {
 
     private AlertListener listener;
 
-    private AlertDialog dialog;
+    private Dialog dialog;
+
+    private boolean useBottomSheet = false;
 
     private char decimalSeparator = '.';
 
@@ -117,12 +122,21 @@ public class NumberInputView implements View.OnClickListener {
             listener.submitToMaxValue();
         });
 
-        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(view.getContext());
-        alertBuilder.setView(view);
-
-        dialog = alertBuilder.create();
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
+        if (useBottomSheet) {
+            BottomSheetDialog bsDialog = new BottomSheetDialog(view.getContext());
+            bsDialog.setContentView(view);
+            bsDialog.setCancelable(false);
+            bsDialog.setCanceledOnTouchOutside(false);
+            bsDialog.getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
+            dialog = bsDialog;
+        } else {
+            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(view.getContext());
+            alertBuilder.setView(view);
+            AlertDialog alertDialog = alertBuilder.create();
+            alertDialog.setCancelable(false);
+            alertDialog.setCanceledOnTouchOutside(false);
+            dialog = alertDialog;
+        }
 
         if (currentStyle != null) {
             applyStyle(currentStyle);
@@ -225,12 +239,23 @@ public class NumberInputView implements View.OnClickListener {
         }
     }
 
+    public void setUseBottomSheet(boolean useBottomSheet) {
+        this.useBottomSheet = useBottomSheet;
+    }
+
+    public boolean isUseBottomSheet() {
+        return useBottomSheet;
+    }
+
     /**
      * show dialog
      */
     public void show(String value, boolean afterPoint) {
         if (null == dialog) return;
         dialog.show();
+        if (dialog instanceof BottomSheetDialog) {
+            ((BottomSheetDialog) dialog).getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
         result.setText(value);
         updateBackground(afterPoint);
     }

@@ -175,6 +175,14 @@ public class NumberInput implements View.OnTouchListener {
         alert.applyStyle(style);
     }
 
+    public void setUseBottomSheet(boolean useBottomSheet) {
+        alert.setUseBottomSheet(useBottomSheet);
+    }
+
+    public boolean isUseBottomSheet() {
+        return alert.isUseBottomSheet();
+    }
+
     public void updateMinMax(int min, int max) {
         updateMinMax(min, max, false);
     }

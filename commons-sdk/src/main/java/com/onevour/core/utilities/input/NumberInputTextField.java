@@ -40,6 +40,7 @@ public class NumberInputTextField extends AppCompatEditText {
         double max = Integer.MAX_VALUE;
         boolean decimal = false;
         boolean showMax = false;
+        boolean useBottomSheet = false;
         String title = null;
         NumberInputStyle style = null;
 
@@ -50,6 +51,7 @@ public class NumberInputTextField extends AppCompatEditText {
                 max = parseDouble(a.getString(R.styleable.NumberInputTextField_maxValue), max);
                 decimal = a.getBoolean(R.styleable.NumberInputTextField_isDecimal, false);
                 showMax = a.getBoolean(R.styleable.NumberInputTextField_isShowMax, false);
+                useBottomSheet = a.getBoolean(R.styleable.NumberInputTextField_useBottomSheet, false);
                 title = a.getString(R.styleable.NumberInputTextField_titleText);
 
                 NumberInputStyle.Builder styleBuilder = new NumberInputStyle.Builder();
@@ -118,6 +120,9 @@ public class NumberInputTextField extends AppCompatEditText {
             }
         }
         NumberFormat numberFormat = decimal ? NFormat.currency() : null;
+        if (useBottomSheet) {
+            numberInput.setUseBottomSheet(true);
+        }
         numberInput.setup(this, numberFormat, min, max);
         if (style != null) {
             numberInput.setStyle(style);
@@ -137,6 +142,10 @@ public class NumberInputTextField extends AppCompatEditText {
 
     public void setStyle(NumberInputStyle style) {
         numberInput.setStyle(style);
+    }
+
+    public void setUseBottomSheet(boolean useBottomSheet) {
+        numberInput.setUseBottomSheet(useBottomSheet);
     }
 
     public void setListener(NumberInput.Listener listener) {

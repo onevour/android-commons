@@ -18,6 +18,7 @@ import java.util.Locale;
 public class FormSimpleActivity extends AppCompatActivity {
 
     private final NumberInput numPadText = new NumberInput();
+    private final NumberInput numPadBottomSheetText = new NumberInput();
     private final NumberInput numPadIndo = new NumberInput();
     private final NumberInput numPadUs = new NumberInput();
 
@@ -60,13 +61,30 @@ public class FormSimpleActivity extends AppCompatActivity {
         numPadUs.setup(binding.inputLocaleUs, formatUs, 0, 10000000.0);
         binding.inputLocaleUs.setText(formatUs.format(1250000.50));
 
-        // 5. Input Trigger via Text
+        // 5. BottomSheet Inputs
+        binding.inputBottomSheet.setText(NFormat.currencyFormat(300000.0));
+
+        NumberInputStyle bsDarkStyle = new NumberInputStyle.Builder()
+                .setDialogBackgroundColor(Color.parseColor("#1E1E1E"))
+                .setTitleTextColor(Color.parseColor("#FF80AB"))
+                .setResultTextColor(Color.parseColor("#80CBC4"))
+                .setKeyTextColor(Color.parseColor("#E0E0E0"))
+                .build();
+        binding.inputBottomSheetDark.setStyle(bsDarkStyle);
+        binding.inputBottomSheetDark.setText(NFormat.currencyFormat(450000.0));
+
+        // 6. Input Trigger via Text (AlertDialog)
         numPadText.setup(this, NFormat.currency(), 0, Double.MAX_VALUE);
-        binding.inputFromText.setOnClickListener(this::updateValue);
+        binding.inputFromText.setOnClickListener(this::updateValueAlertDialog);
+
+        // 7. Input Trigger via Text (BottomSheet)
+        numPadBottomSheetText.setUseBottomSheet(true);
+        numPadBottomSheetText.setup(this, NFormat.currency(), 0, Double.MAX_VALUE);
+        binding.inputFromBottomSheet.setOnClickListener(this::updateValueBottomSheet);
     }
 
-    private void updateValue(View view) {
-        numPadText.setTitle("Maximum payment");
+    private void updateValueAlertDialog(View view) {
+        numPadText.setTitle("Maximum payment (AlertDialog)");
         numPadText.updateMinMax(0, 30000, true);
         numPadText.inputValue(2000.98);
         numPadText.setListener(new NumberInput.Listener() {
@@ -84,10 +102,30 @@ public class FormSimpleActivity extends AppCompatActivity {
         numPadText.show();
     }
 
+    private void updateValueBottomSheet(View view) {
+        numPadBottomSheetText.setTitle("Maximum payment (BottomSheet)");
+        numPadBottomSheetText.updateMinMax(0, 50000, true);
+        numPadBottomSheetText.inputValue(15000.50);
+        numPadBottomSheetText.setListener(new NumberInput.Listener() {
+            @Override
+            public void onSubmitValue() {
+
+            }
+
+            @Override
+            public void onValue(@IdRes int id, boolean isDecimal, int intValue, double doubleValue) {
+                binding.inputFromBottomSheet.setText(numPadBottomSheetText.getValueString());
+            }
+
+        });
+        numPadBottomSheetText.show();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         numPadText.destroy();
+        numPadBottomSheetText.destroy();
         numPadIndo.destroy();
         numPadUs.destroy();
     }

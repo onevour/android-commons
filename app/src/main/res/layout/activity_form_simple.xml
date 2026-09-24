@@ -224,15 +224,88 @@
             app:maxValue="10000000"
             app:minValue="0" />
 
+        <!-- Input Versi BottomSheet -->
+        <TextView
+            android:id="@+id/txt_bottom_sheet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/bottom_sheet_mode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/input_locale_us" />
+
+        <com.onevour.core.utilities.input.NumberInputTextField
+            android:id="@+id/input_bottom_sheet"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:ems="10"
+            app:isDecimal="true"
+            app:useBottomSheet="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txt_bottom_sheet"
+            app:maxValue="5000000"
+            app:minValue="0" />
+
+        <TextView
+            android:id="@+id/txt_bottom_sheet_dark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/bottom_sheet_dark_mode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/input_bottom_sheet" />
+
+        <com.onevour.core.utilities.input.NumberInputTextField
+            android:id="@+id/input_bottom_sheet_dark"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:ems="10"
+            app:dialogBackground="#1E1E1E"
+            app:dialogKeyTextColor="#E0E0E0"
+            app:dialogResultColor="#80CBC4"
+            app:dialogTitleColor="#FF80AB"
+            app:isDecimal="true"
+            app:useBottomSheet="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txt_bottom_sheet_dark"
+            app:maxValue="5000000"
+            app:minValue="0" />
+
         <TextView
             android:id="@+id/input_from_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Input From Text"
+            android:text="Input From Text (AlertDialog)"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/input_locale_us" />
+            app:layout_constraintTop_toBottomOf="@+id/input_bottom_sheet_dark" />
+
+        <TextView
+            android:id="@+id/input_from_bottom_sheet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Input From Text (BottomSheet)"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/input_from_text" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

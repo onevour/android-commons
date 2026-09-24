@@ -18,5 +18,6 @@
         <attr name="dialogKeyTextColor" format="color" />
         <attr name="dialogKeyTextSize" format="dimension" />
         <attr name="dialogKeyBackground" format="color|reference" />
+        <attr name="useBottomSheet" format="boolean" />
     </declare-styleable>
 </resources>
