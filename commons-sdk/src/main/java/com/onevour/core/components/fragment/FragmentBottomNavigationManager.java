@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.fragment;
+package com.onevour.core.components.fragment;
 //
 // Created by Zuliadin on 2019-12-30.
 //

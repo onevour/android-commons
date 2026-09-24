@@ -1,8 +1,8 @@
 package com.onevour.core;
 
 import com.onevour.core.utilities.format.NFormat;
-import com.onevour.core.utilities.input.InputDecimal;
-import com.onevour.core.utilities.input.InputNumeric;
+import com.onevour.core.components.numpad.InputDecimal;
+import com.onevour.core.components.numpad.InputNumeric;
 
 import org.junit.Assert;
 import org.junit.Test;

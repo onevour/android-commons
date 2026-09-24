@@ -7,9 +7,9 @@ import android.view.View;
 import androidx.annotation.IdRes;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.onevour.core.components.numpad.NumPad;
+import com.onevour.core.components.numpad.NumPadStyle;
 import com.onevour.core.utilities.format.NFormat;
-import com.onevour.core.utilities.input.NumberInput;
-import com.onevour.core.utilities.input.NumberInputStyle;
 import com.onevour.sdk.impl.databinding.ActivityFormSimpleBinding;
 
 import java.text.NumberFormat;
@@ -17,10 +17,10 @@ import java.util.Locale;
 
 public class FormSimpleActivity extends AppCompatActivity {
 
-    private final NumberInput numPadText = new NumberInput();
-    private final NumberInput numPadBottomSheetText = new NumberInput();
-    private final NumberInput numPadIndo = new NumberInput();
-    private final NumberInput numPadUs = new NumberInput();
+    private final NumPad numPadText = new NumPad();
+    private final NumPad numPadBottomSheetText = new NumPad();
+    private final NumPad numPadIndo = new NumPad();
+    private final NumPad numPadUs = new NumPad();
 
     private ActivityFormSimpleBinding binding;
 
@@ -38,7 +38,7 @@ public class FormSimpleActivity extends AppCompatActivity {
         binding.inputCustomLight.setText(NFormat.currencyFormat(50000.0));
 
         // 2. Custom Dark Mode Input
-        NumberInputStyle darkStyle = new NumberInputStyle.Builder()
+        NumPadStyle darkStyle = new NumPadStyle.Builder()
                 .setDialogBackgroundColor(Color.parseColor("#121212"))
                 .setTitleTextColor(Color.parseColor("#BB86FC"))
                 .setResultTextColor(Color.parseColor("#03DAC6"))
@@ -64,7 +64,7 @@ public class FormSimpleActivity extends AppCompatActivity {
         // 5. BottomSheet Inputs
         binding.inputBottomSheet.setText(NFormat.currencyFormat(300000.0));
 
-        NumberInputStyle bsDarkStyle = new NumberInputStyle.Builder()
+        NumPadStyle bsDarkStyle = new NumPadStyle.Builder()
                 .setDialogBackgroundColor(Color.parseColor("#1E1E1E"))
                 .setTitleTextColor(Color.parseColor("#FF80AB"))
                 .setResultTextColor(Color.parseColor("#80CBC4"))
@@ -87,7 +87,7 @@ public class FormSimpleActivity extends AppCompatActivity {
         numPadText.setTitle("Maximum payment (AlertDialog)");
         numPadText.updateMinMax(0, 30000, true);
         numPadText.inputValue(2000.98);
-        numPadText.setListener(new NumberInput.Listener() {
+        numPadText.setListener(new NumPad.Listener() {
             @Override
             public void onSubmitValue() {
 
@@ -106,7 +106,7 @@ public class FormSimpleActivity extends AppCompatActivity {
         numPadBottomSheetText.setTitle("Maximum payment (BottomSheet)");
         numPadBottomSheetText.updateMinMax(0, 50000, true);
         numPadBottomSheetText.inputValue(15000.50);
-        numPadBottomSheetText.setListener(new NumberInput.Listener() {
+        numPadBottomSheetText.setListener(new NumPad.Listener() {
             @Override
             public void onSubmitValue() {
 

@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import com.onevour.core.utilities.commons.ValueOf;
 
@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class InputNumeric implements NumberInputAdapter {
+public class InputNumeric implements NumPadAdapter {
 
     private static final String TAG = "NID-INT";
 

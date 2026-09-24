@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -15,21 +15,21 @@ import com.onevour.core.utilities.format.NFormat;
 
 import java.text.NumberFormat;
 
-public class NumberInputTextField extends AppCompatEditText {
+public class NumPadField extends AppCompatEditText {
 
-    private final NumberInput numberInput = new NumberInput();
+    private final NumPad numPad = new NumPad();
 
-    public NumberInputTextField(Context context) {
+    public NumPadField(Context context) {
         super(context);
         init(null);
     }
 
-    public NumberInputTextField(Context context, @Nullable AttributeSet attrs) {
+    public NumPadField(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(attrs);
     }
 
-    public NumberInputTextField(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public NumPadField(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(attrs);
     }
@@ -42,7 +42,7 @@ public class NumberInputTextField extends AppCompatEditText {
         boolean showMax = false;
         boolean useBottomSheet = false;
         String title = null;
-        NumberInputStyle style = null;
+        NumPadStyle style = null;
 
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.NumberInputTextField);
@@ -54,7 +54,7 @@ public class NumberInputTextField extends AppCompatEditText {
                 useBottomSheet = a.getBoolean(R.styleable.NumberInputTextField_useBottomSheet, false);
                 title = a.getString(R.styleable.NumberInputTextField_titleText);
 
-                NumberInputStyle.Builder styleBuilder = new NumberInputStyle.Builder();
+                NumPadStyle.Builder styleBuilder = new NumPadStyle.Builder();
                 boolean styleConfigured = false;
 
                 int fontResId = a.getResourceId(R.styleable.NumberInputTextField_dialogFontFamily, 0);
@@ -121,14 +121,14 @@ public class NumberInputTextField extends AppCompatEditText {
         }
         NumberFormat numberFormat = decimal ? NFormat.currency() : null;
         if (useBottomSheet) {
-            numberInput.setUseBottomSheet(true);
+            numPad.setUseBottomSheet(true);
         }
-        numberInput.setup(this, numberFormat, min, max);
+        numPad.setup(this, numberFormat, min, max);
         if (style != null) {
-            numberInput.setStyle(style);
+            numPad.setStyle(style);
         }
-        if (title != null) numberInput.setTitle(title);
-        if (showMax) numberInput.showMaxValue();
+        if (title != null) numPad.setTitle(title);
+        if (showMax) numPad.showMaxValue();
     }
 
     private double parseDouble(@Nullable String value, double fallback) {
@@ -140,41 +140,41 @@ public class NumberInputTextField extends AppCompatEditText {
         }
     }
 
-    public void setStyle(NumberInputStyle style) {
-        numberInput.setStyle(style);
+    public void setStyle(NumPadStyle style) {
+        numPad.setStyle(style);
     }
 
     public void setUseBottomSheet(boolean useBottomSheet) {
-        numberInput.setUseBottomSheet(useBottomSheet);
+        numPad.setUseBottomSheet(useBottomSheet);
     }
 
-    public void setListener(NumberInput.Listener listener) {
-        numberInput.setListener(listener);
+    public void setListener(NumPad.Listener listener) {
+        numPad.setListener(listener);
     }
 
     public void updateMinMax(double min, double max) {
-        numberInput.updateMinMax(min, max);
+        numPad.updateMinMax(min, max);
     }
 
     public void updateMinMax(double min, double max, boolean showMax) {
-        numberInput.updateMinMax(min, max, showMax);
+        numPad.updateMinMax(min, max, showMax);
     }
 
     public void inputValue(double value) {
-        numberInput.inputValue(value);
+        numPad.inputValue(value);
     }
 
     public void showMaxValue() {
-        numberInput.showMaxValue();
+        numPad.showMaxValue();
     }
 
     public String getValueString() {
-        return numberInput.getValueString();
+        return numPad.getValueString();
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        numberInput.destroy();
+        numPad.destroy();
     }
 }

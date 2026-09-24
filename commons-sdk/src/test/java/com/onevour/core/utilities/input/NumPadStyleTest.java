@@ -4,13 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import com.onevour.core.components.numpad.NumPadStyle;
+
 import org.junit.Test;
 
-public class NumberInputStyleTest {
+public class NumPadStyleTest {
 
     @Test
     public void testDefaultBuilder() {
-        NumberInputStyle style = new NumberInputStyle.Builder().build();
+        NumPadStyle style = new NumPadStyle.Builder().build();
         assertNotNull(style);
         assertNull(style.getTypeface());
         assertNull(style.getDialogBackgroundColor());
@@ -35,7 +37,7 @@ public class NumberInputStyleTest {
         float keySize = 24.0f;
         int keyBgColor = 0xFFEEEEEE;
 
-        NumberInputStyle style = new NumberInputStyle.Builder()
+        NumPadStyle style = new NumPadStyle.Builder()
                 .setDialogBackgroundColor(bgColor)
                 .setTitleTextColor(titleColor)
                 .setTitleTextSizePx(titleSize)

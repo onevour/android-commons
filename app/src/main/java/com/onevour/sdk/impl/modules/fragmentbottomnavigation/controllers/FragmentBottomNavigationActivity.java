@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import com.onevour.core.utilities.fragment.FragmentBottomNavigationManager;
+import com.onevour.core.components.fragment.FragmentBottomNavigationManager;
 import com.onevour.sdk.impl.R;
 import com.onevour.sdk.impl.databinding.ActivityFragmentBottomNavigationBinding;
 import com.onevour.sdk.impl.modules.fragment.controllers.PageOneFragment;

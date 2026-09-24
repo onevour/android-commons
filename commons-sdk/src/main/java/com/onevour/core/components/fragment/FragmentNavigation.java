@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.fragment;
+package com.onevour.core.components.fragment;
 
 import android.content.Context;
 

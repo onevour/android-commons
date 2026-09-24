@@ -12,7 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.onevour.core.utilities.commons.ValueOf;
-import com.onevour.core.utilities.fragment.FragmentNavigation;
+import com.onevour.core.components.fragment.FragmentNavigation;
 import com.onevour.sdk.impl.R;
 import com.onevour.sdk.impl.databinding.FragmentPageOneBinding;
 

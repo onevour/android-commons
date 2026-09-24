@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -29,17 +29,17 @@ import java.util.concurrent.Executors;
  * Created by zuliadin on 08/10/2016.
  * Updated by zuliadin on 30/01/2021.
  */
-public class NumberInput implements View.OnTouchListener {
+public class NumPad implements View.OnTouchListener {
 
-    private static final String TAG = NumberInput.class.getSimpleName();
+    private static final String TAG = NumPad.class.getSimpleName();
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    private final NumberInputView alert = new NumberInputView();
+    private final NumPadInputView alert = new NumPadInputView();
 
-    private final NumberInputView.AlertListener viewListener = new NumberInputView.AlertListener() {
+    private final NumPadInputView.AlertListener viewListener = new NumPadInputView.AlertListener() {
 
         @Override
         public void inputValue(char value) throws ParseException {
@@ -94,17 +94,17 @@ public class NumberInput implements View.OnTouchListener {
 
     private Listener listener;
 
-    private NumberInputAdapter adapter;
+    private NumPadAdapter adapter;
 
-    public NumberInput() {
+    public NumPad() {
 
     }
 
-    public NumberInput(final EditText editText) {
+    public NumPad(final EditText editText) {
         setup(editText);
     }
 
-    public NumberInput(final EditText editText, final NumberFormat numberFormat, double min, double max) {
+    public NumPad(final EditText editText, final NumberFormat numberFormat, double min, double max) {
         setup(editText, numberFormat, min, max);
     }
 
@@ -171,7 +171,7 @@ public class NumberInput implements View.OnTouchListener {
         }
     }
 
-    public void setStyle(NumberInputStyle style) {
+    public void setStyle(NumPadStyle style) {
         alert.applyStyle(style);
     }
 
@@ -278,7 +278,7 @@ public class NumberInput implements View.OnTouchListener {
 
     /**
      * Call from the owning Activity/Fragment's onDestroy() to stop the background executor.
-     * Without this, every NumberInput leaks a dedicated background thread.
+     * Without this, every NumPad leaks a dedicated background thread.
      */
     public void destroy() {
         executor.shutdown();

@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
 
-import com.onevour.core.utilities.fragment.FragmentNavigation;
+import com.onevour.core.components.fragment.FragmentNavigation;
 import com.onevour.sdk.impl.R;
 
 public class FragmentActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable;
 import androidx.annotation.ColorInt;
 import androidx.annotation.Px;
 
-public class NumberInputStyle {
+public class NumPadStyle {
 
     private Typeface typeface;
     private Integer dialogBackgroundColor;
@@ -19,7 +19,7 @@ public class NumberInputStyle {
     private Drawable keyBackgroundDrawable;
     private Integer keyBackgroundColor;
 
-    public NumberInputStyle() {
+    public NumPadStyle() {
     }
 
     public Typeface getTypeface() {
@@ -64,7 +64,7 @@ public class NumberInputStyle {
 
     public static class Builder {
 
-        private final NumberInputStyle style = new NumberInputStyle();
+        private final NumPadStyle style = new NumPadStyle();
 
         public Builder setTypeface(Typeface typeface) {
             style.typeface = typeface;
@@ -116,7 +116,7 @@ public class NumberInputStyle {
             return this;
         }
 
-        public NumberInputStyle build() {
+        public NumPadStyle build() {
             return style;
         }
     }

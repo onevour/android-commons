@@ -23,7 +23,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_number"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -52,7 +52,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_number" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_decimal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -83,7 +83,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_decimal" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_decimal_2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -114,7 +114,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_decimal_2" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_custom_light"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -146,7 +146,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_custom_light" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_custom_dark"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -179,7 +179,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_custom_dark" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_locale_indo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -207,7 +207,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_locale_indo" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_locale_us"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -236,7 +236,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_locale_us" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_bottom_sheet"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -265,7 +265,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/input_bottom_sheet" />
 
-        <com.onevour.core.utilities.input.NumberInputTextField
+        <com.onevour.core.components.numpad.NumPadField
             android:id="@+id/input_bottom_sheet_dark"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

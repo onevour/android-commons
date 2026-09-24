@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import android.util.Log;
 
@@ -13,7 +13,7 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class InputDecimal implements NumberInputAdapter {
+public class InputDecimal implements NumPadAdapter {
 
     private static final String TAG = InputDecimal.class.getSimpleName();
 

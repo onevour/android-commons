@@ -6,7 +6,7 @@ import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.onevour.core.utilities.input.NumberInput;
+import com.onevour.core.components.numpad.NumPad;
 import com.onevour.sdk.impl.databinding.ActivityFormScrollBinding;
 
 
@@ -58,7 +58,7 @@ public class FormScrollActivity extends AppCompatActivity {
 
     private boolean isScroll = false;
 
-    private final List<NumberInput> numberInputs = new ArrayList<>();
+    private final List<NumPad> numPads = new ArrayList<>();
 
     ActivityFormScrollBinding binding;
 
@@ -87,9 +87,9 @@ public class FormScrollActivity extends AppCompatActivity {
         editTextList.add(binding.inputNumber15);
         for (EditText e : editTextList) {
             e.setText(String.valueOf(0));
-            NumberInput numberInput = new NumberInput(e);
-//            numberInput.setScrollFlag(isScroll);
-            numberInputs.add(numberInput);
+            NumPad numPad = new NumPad(e);
+//            numPad.setScrollFlag(isScroll);
+            numPads.add(numPad);
         }
 //        ListenScrollChangesHelper listener = new ListenScrollChangesHelper();
 //        listener.addViewToListen(scrollView, (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -105,8 +105,8 @@ public class FormScrollActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        for (NumberInput numberInput : numberInputs) {
-            numberInput.destroy();
+        for (NumPad numPad : numPads) {
+            numPad.destroy();
         }
     }
 

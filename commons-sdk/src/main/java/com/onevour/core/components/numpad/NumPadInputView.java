@@ -1,4 +1,4 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -34,9 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class NumberInputView implements View.OnClickListener {
+public class NumPadInputView implements View.OnClickListener {
 
-    private static final String TAG = NumberInputView.class.getSimpleName();
+    private static final String TAG = NumPadInputView.class.getSimpleName();
 
     private AlertListener listener;
 
@@ -62,7 +62,7 @@ public class NumberInputView implements View.OnClickListener {
 
     private double min, max;
 
-    private NumberInputStyle currentStyle;
+    private NumPadStyle currentStyle;
 
     protected void init(Context context, NumberFormat numberFormat, double min, double max, AlertListener listener) {
         this.context = context;
@@ -171,7 +171,7 @@ public class NumberInputView implements View.OnClickListener {
         return new RippleDrawable(rippleColor, content, null);
     }
 
-    public void applyStyle(NumberInputStyle style) {
+    public void applyStyle(NumPadStyle style) {
         this.currentStyle = style;
         if (style == null) return;
 

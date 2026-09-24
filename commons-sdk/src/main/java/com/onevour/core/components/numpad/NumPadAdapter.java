@@ -1,8 +1,8 @@
-package com.onevour.core.utilities.input;
+package com.onevour.core.components.numpad;
 
 import java.text.ParseException;
 
-public interface NumberInputAdapter {
+public interface NumPadAdapter {
 
     void validateInit();
 
