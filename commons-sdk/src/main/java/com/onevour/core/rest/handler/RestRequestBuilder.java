@@ -3,6 +3,7 @@ package com.onevour.core.rest.handler;
 import android.util.Log;
 
 import com.onevour.core.rest.components.HttpHeaders;
+import com.onevour.core.rest.configurations.HttpTimeout;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.rest.models.HttpErrorResponse;
 import com.onevour.core.rest.models.HttpResponse;
@@ -116,6 +117,7 @@ public class RestRequestBuilder {
         JWTTokenRefreshRequest request = new JWTTokenRefreshRequest();
         request.setRefreshToken(refreshToken);
         Log.d(TAG, "request token refresh with id " + refreshToken);
+        /*
         RestRequest.post(refreshTokenUrl, request, new HttpListener<Response<JWTTokenRefreshResponse>>() {
             @Override
             public void onSuccess(HttpResponse<Response<JWTTokenRefreshResponse>> httpResponse) {
@@ -162,6 +164,7 @@ public class RestRequestBuilder {
                 listener.onError(httpErrorResponse);
             }
         });
+         */
     }
 
     private void error(int code, String message) {
@@ -173,19 +176,19 @@ public class RestRequestBuilder {
 
     private void request() {
         if ("GET".equalsIgnoreCase(method)) {
-            RestRequest.get(url, 60, header, listener);
+            RestRequest.get(url, new HttpTimeout(15,45), header, listener);
         }
         if ("POST".equalsIgnoreCase(method)) {
-            RestRequest.post(url, 60, header, body, listener);
+            RestRequest.post(url, new HttpTimeout(15,45), header, body, listener);
         }
         if ("PATCH".equalsIgnoreCase(method)) {
-            RestRequest.patch(url, 60, header, body, listener);
+            RestRequest.patch(url, new HttpTimeout(15,45), header, body, listener);
         }
         if ("PUT".equalsIgnoreCase(method)) {
-            RestRequest.put(url, 60, header, body, listener);
+            RestRequest.put(url, new HttpTimeout(15,45), header, body, listener);
         }
         if ("DELETE".equalsIgnoreCase(method)) {
-            RestRequest.delete(url, 60, header, body, listener);
+            RestRequest.delete(url, new HttpTimeout(15,45), header, body, listener);
         }
     }
 

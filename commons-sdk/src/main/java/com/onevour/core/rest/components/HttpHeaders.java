@@ -74,7 +74,7 @@ public class HttpHeaders {
     }
 
     public List<String> getAll(String name) {
-        List<String> values = headers.get(name);
+        List<String> values = headers.get(name.toLowerCase());
 
         if (values == null) {
             return new ArrayList<>();

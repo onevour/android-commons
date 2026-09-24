@@ -24,4 +24,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class org.cise.** { *; }
+-keep class com.onevour.core.rest.** { *; }
+-keep class com.onevour.core.components.** { *; }
+-keep class com.onevour.core.utilities.** { *; }

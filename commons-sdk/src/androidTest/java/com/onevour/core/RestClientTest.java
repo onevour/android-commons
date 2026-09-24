@@ -105,7 +105,7 @@ public class RestClientTest extends RestBaseTest {
 
         CountDownLatch latch = new CountDownLatch(1);
 
-        repository.update("10", new UserRequest("Budi"), new HttpListener<>() {
+        repository.updateWithPost("10", new UserRequest("Budi"), new HttpListener<>() {
 
                     @Override
                     public void onSuccess(HttpResponse<UserResponse> response) {

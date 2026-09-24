@@ -20,6 +20,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+        }
+    }
     testOptions {
         unitTests.returnDefaultValues = true
     }

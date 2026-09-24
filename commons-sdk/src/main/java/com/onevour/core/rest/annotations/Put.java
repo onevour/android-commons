@@ -13,11 +13,9 @@ public @interface Put {
 
     String url() default "";
 
-    int connect() default -1;
+    int connect() default 0;
 
-    int request() default -1;
-
-    int read() default -1;
+    int read() default 0;
 
     String contentType() default "application/json";
 }

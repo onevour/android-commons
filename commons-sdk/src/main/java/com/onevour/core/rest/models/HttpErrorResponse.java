@@ -66,23 +66,23 @@ public class HttpErrorResponse {
 
     public HttpErrorResponse(int code, IOException iOException) {
         this.code = code;
-        message = HttpStatusCode.getMessage(code);
-        exception = iOException;
-        error = exception.getMessage();
+        this.message = HttpStatusCode.getMessage(code);
+        this.exception = iOException;
+        this.error = exception.getMessage();
     }
 
     public HttpErrorResponse(int code, IOException iOException, String message) {
         this.code = code;
-        message = HttpStatusCode.getMessage(code);
-        exception = iOException;
-        error = exception.getMessage();
+        this.message = HttpStatusCode.getMessage(code);
+        this.exception = iOException;
+        this.error = exception.getMessage();
     }
 
     public HttpErrorResponse(int code, Exception exception) {
         this.code = code;
-        message = HttpStatusCode.getMessage(code);
+        this.message = HttpStatusCode.getMessage(code);
         this.exception = exception;
-        error = exception.getMessage();
+        this.error = exception.getMessage();
     }
 
     public HttpHeaders getHeaders() {

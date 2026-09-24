@@ -23,6 +23,7 @@ android {
     compileSdk = 36
     defaultConfig {
         minSdk = 23
+        consumerProguardFiles 'consumer-rules.pro'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
@@ -36,6 +37,7 @@ android {
         viewBinding true
         dataBinding true
     }
+
     publishing {
         singleVariant('release') {
             withSourcesJar()
@@ -64,4 +66,5 @@ dependencies {
     androidTestImplementation 'androidx.test:core:1.6.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     androidTestImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
+    androidTestImplementation "com.squareup.okhttp3:okhttp-tls:4.12.0"
 }

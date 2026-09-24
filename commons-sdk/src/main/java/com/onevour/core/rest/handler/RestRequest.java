@@ -3,6 +3,7 @@ package com.onevour.core.rest.handler;
 import com.onevour.core.rest.components.HttpHeaders;
 import com.onevour.core.rest.components.HttpMultipart;
 import com.onevour.core.rest.components.HttpRequest;
+import com.onevour.core.rest.configurations.HttpTimeout;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 
@@ -22,45 +23,11 @@ public class RestRequest {
         return RestExecutor.newInstance();
     }
 
-    public static <T> void get(String url, HttpListener<T> listener) {
-        queue().add(new HttpRequest(url, "GET", null, null, listener));
-    }
-
-    public static <T> void get(String url, HttpHeaders header, HttpListener<T> listener) {
-        queue().add(new HttpRequest(url, "GET", header, null, listener));
-    }
-
-    public static <T> void get(String url, int timeout, HttpHeaders header, HttpListener<T> listener) {
+    public static <T> void get(String url, HttpTimeout timeout, HttpHeaders header, HttpListener<T> listener) {
         queue().add(new HttpRequest(url, "GET", timeout, header, null, listener));
     }
 
-    public static <T, E> void post(String url, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "POST", null, (String) json, listener));
-        } else {
-            String body = GsonHelper.newInstance().getGson().toJson(json);
-            queue().add(new HttpRequest(url, "POST", null, body, listener));
-        }
-    }
-
-    public static <T, E> void post(String url, HttpHeaders header, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "POST", header, (String) json, listener));
-        } else {
-            String body = GsonHelper.newInstance().getGson().toJson(json);
-            queue().add(new HttpRequest(url, "POST", header, body, listener));
-        }
-    }
-
-    public static <T, E> void post(String url, int timeout, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "POST", timeout, (String) json, listener));
-        } else {
-            queue().add(new HttpRequest(url, "POST", timeout, GsonHelper.newInstance().getGson().toJson(json), listener));
-        }
-    }
-
-    public static <T, E> void post(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
+    public static <T, E> void post(String url, HttpTimeout timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "POST", timeout, header, (String) json, listener));
         } else {
@@ -68,25 +35,7 @@ public class RestRequest {
         }
     }
 
-
-    public static <T, E> void put(String url, int timeout, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "PUT", timeout, (String) json, listener));
-        } else {
-            queue().add(new HttpRequest(url, "PUT", timeout, GsonHelper.newInstance().getGson().toJson(json), listener));
-        }
-    }
-
-    public static <T, E> void put(String url, HttpHeaders header, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "PUT", header, (String) json, listener));
-        } else {
-            String body = GsonHelper.newInstance().getGson().toJson(json);
-            queue().add(new HttpRequest(url, "PUT", header, body, listener));
-        }
-    }
-
-    public static <T, E> void put(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
+    public static <T, E> void put(String url, HttpTimeout timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "PUT", timeout, header, (String) json, listener));
         } else {
@@ -95,7 +44,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void patch(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
+    public static <T, E> void patch(String url, HttpTimeout timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "PATCH", timeout, header, (String) json, listener));
         } else {
@@ -103,33 +52,7 @@ public class RestRequest {
         }
     }
 
-    public static <T, E> void delete(String url, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "DELETE", null, (String) json, listener));
-        } else {
-            String body = GsonHelper.newInstance().getGson().toJson(json);
-            queue().add(new HttpRequest(url, "DELETE", null, body, listener));
-        }
-    }
-
-    public static <T, E> void delete(String url, HttpHeaders header, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "DELETE", header, (String) json, listener));
-        } else {
-            String body = GsonHelper.newInstance().getGson().toJson(json);
-            queue().add(new HttpRequest(url, "DELETE", header, body, listener));
-        }
-    }
-
-    public static <T, E> void delete(String url, int timeout, T json, HttpListener<E> listener) {
-        if (json instanceof String) {
-            queue().add(new HttpRequest(url, "DELETE", timeout, (String) json, listener));
-        } else {
-            queue().add(new HttpRequest(url, "DELETE", timeout, GsonHelper.newInstance().getGson().toJson(json), listener));
-        }
-    }
-
-    public static <T, E> void delete(String url, int timeout, HttpHeaders header, T json, HttpListener<E> listener) {
+    public static <T, E> void delete(String url, HttpTimeout timeout, HttpHeaders header, T json, HttpListener<E> listener) {
         if (json instanceof String) {
             queue().add(new HttpRequest(url, "DELETE", timeout, header, (String) json, listener));
         } else {

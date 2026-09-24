@@ -9,9 +9,9 @@ import com.onevour.core.utilities.input.InputDecimal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+//import org.mockito.Mock;
+//import org.mockito.junit.MockitoJUnitRunner;
+//import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.text.NumberFormat;
 
@@ -20,12 +20,11 @@ import java.text.NumberFormat;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-@RunWith(MockitoJUnitRunner.class)
-@PrepareForTest({Log.class, RestRequest.class})
+//@RunWith(AndroidJUnit4.class)      // ✅
 public class InputNumberUnitTest {
 
-    @Mock
-    Log log;
+//    @Mock
+//    Log log;
 
     @Test
     public void test_number_input_double() throws Exception {

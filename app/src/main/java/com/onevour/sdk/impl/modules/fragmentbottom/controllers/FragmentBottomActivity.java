@@ -15,8 +15,6 @@ import com.onevour.sdk.impl.databinding.ActivityFragmentBottomBinding;
 
 public class FragmentBottomActivity extends AppCompatActivity {
 
-//    @BindView(R.id.btn_show)
-//    Button btnShow;
 
 
     ActivityFragmentBottomBinding binding;
@@ -33,17 +31,17 @@ public class FragmentBottomActivity extends AppCompatActivity {
 
     //@OnClick(R.id.btn_show)
     public void onBtnShowClicked(View view) {
-        RestRequest.post("https://api.digitalrecordcard.com/index.php/api_v1/login", new String(""), new HttpListener<String>() {
-            @Override
-            public void onSuccess(HttpResponse response, String responseBody) {
-                Log.d("API-TEST", response);
-            }
-
-            @Override
-            public void onError(HttpErrorResponse httpErrorResponse) {
-                Log.e("API-TEST", httpErrorResponse.getMessage());
-            }
-        });
+//        RestRequest.post("https://api.digitalrecordcard.com/index.php/api_v1/login", new String(""), new HttpListener<String>() {
+//            @Override
+//            public void onSuccess(HttpResponse response, String responseBody) {
+//                Log.d("API-TEST", response);
+//            }
+//
+//            @Override
+//            public void onError(HttpErrorResponse httpErrorResponse) {
+//                Log.e("API-TEST", httpErrorResponse.getMessage());
+//            }
+//        });
     }
 
 //    @OnClick(R.id.btn_show_async)

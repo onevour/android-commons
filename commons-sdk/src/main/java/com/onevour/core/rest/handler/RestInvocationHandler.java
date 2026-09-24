@@ -33,19 +33,19 @@ public class RestInvocationHandler implements InvocationHandler {
         Log.d(TAG, "Base URL   : " + configuration.getUrl());
 
         if ("get".equalsIgnoreCase(configuration.getMethodName())) {
-            RestRequest.get(configuration.getUrl(), configuration.getConnect(), configuration.getHeaders(), configuration.getHttpListener());
+            RestRequest.get(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getHttpListener());
         }
         if ("post".equalsIgnoreCase(configuration.getMethodName())) {
-            RestRequest.post(configuration.getUrl(), configuration.getConnect(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
+            RestRequest.post(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
         }
         if ("put".equalsIgnoreCase(configuration.getMethodName())) {
-            RestRequest.put(configuration.getUrl(), configuration.getConnect(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
+            RestRequest.put(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
         }
         if ("patch".equalsIgnoreCase(configuration.getMethodName())) {
-            RestRequest.patch(configuration.getUrl(), configuration.getConnect(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
+            RestRequest.patch(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
         }
         if ("delete".equalsIgnoreCase(configuration.getMethodName())) {
-            RestRequest.delete(configuration.getUrl(), configuration.getConnect(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
+            RestRequest.delete(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getBody(), configuration.getHttpListener());
         }
         return null;
     }
