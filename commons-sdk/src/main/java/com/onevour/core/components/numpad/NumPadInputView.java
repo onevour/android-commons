@@ -8,9 +8,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -18,7 +20,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.AccessibilityDelegateCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
@@ -54,6 +58,10 @@ public class NumPadInputView implements View.OnClickListener {
 
     private ImageView del;
 
+    private View dragHandle;
+
+    private View divider;
+
     private final List<TextView> numKeys = new ArrayList<>();
 
     private Context context;
@@ -77,6 +85,8 @@ public class NumPadInputView implements View.OnClickListener {
         titleLeft = view.findViewById(R.id.title_left);
         titleRight = view.findViewById(R.id.title_right);
         result = view.findViewById(R.id.key_result);
+        dragHandle = view.findViewById(R.id.drag_handle);
+        divider = view.findViewById(R.id.divider);
 
         TextView num0 = view.findViewById(R.id.key_num_0);
         TextView num1 = view.findViewById(R.id.key_num_1);
@@ -167,8 +177,25 @@ public class NumPadInputView implements View.OnClickListener {
 
     private Drawable createRippleDrawable(Drawable content) {
         if (content == null) return null;
-        ColorStateList rippleColor = ColorStateList.valueOf(0x33888888);
+        int rippleColorValue = (currentStyle != null && currentStyle.getRippleColor() != null)
+                ? currentStyle.getRippleColor() : 0x33888888;
+        ColorStateList rippleColor = ColorStateList.valueOf(rippleColorValue);
         return new RippleDrawable(rippleColor, content, null);
+    }
+
+    /**
+     * Retints an already-inflated key's ripple in place, for the default XML-asset ripples
+     * (e.g. numpad_ripple, which resolve their highlight from {@code ?attr/colorControlHighlight}
+     * at inflate time) that {@link #createRippleDrawable} never touches because they weren't
+     * rebuilt by a style override.
+     */
+    private void retintRipple(View view, @ColorInt int color) {
+        if (view == null) return;
+        Drawable background = view.getBackground();
+        if (!(background instanceof RippleDrawable)) return;
+        background = background.mutate();
+        ((RippleDrawable) background).setColor(ColorStateList.valueOf(color));
+        view.setBackground(background);
     }
 
     public void applyStyle(NumPadStyle style) {
@@ -237,6 +264,96 @@ public class NumPadInputView implements View.OnClickListener {
                 }
             }
         }
+
+        if (style.getAccentColor() != null) {
+            if (numCancel != null) {
+                numCancel.setTextColor(style.getAccentColor());
+            }
+            if (numOption != null) {
+                numOption.setBackground(createAccentSubmitDrawable(style.getAccentColor()));
+            }
+        }
+
+        if (style.getResultBackgroundColor() != null && result != null) {
+            result.setBackground(tintedCopy(R.drawable.numpad_screen, style.getResultBackgroundColor()));
+        }
+
+        if (style.getDividerColor() != null && divider != null) {
+            divider.setBackground(tintedCopy(R.drawable.numpad_divider, style.getDividerColor()));
+        }
+
+        if (style.getHandleColor() != null && dragHandle != null) {
+            dragHandle.setBackground(tintedCopy(R.drawable.numpad_rectangle, style.getHandleColor()));
+        }
+
+        if (style.getRippleColor() != null) {
+            for (TextView key : numKeys) {
+                retintRipple(key, style.getRippleColor());
+            }
+            retintRipple(numCancel, style.getRippleColor());
+            retintRipple(del, style.getRippleColor());
+        }
+    }
+
+    /**
+     * A mutated, independently-tinted copy of a single-path drawable resource -- safe to use on
+     * decorative one-color shapes (screen, divider, handle) since, unlike
+     * {@link #createAccentSubmitDrawable} / {@link #createAfterPointRingDrawable}, there is only
+     * one path to tint.
+     */
+    private Drawable tintedCopy(int drawableRes, @ColorInt int color) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableRes);
+        if (drawable == null) return null;
+        drawable = drawable.mutate();
+        DrawableCompat.setTint(drawable, color);
+        return drawable;
+    }
+
+    /**
+     * Rebuilds the submit key's pill-plus-checkmark look with the pill re-tinted to a
+     * client-brand color, instead of the library's default blue. Reuses the existing
+     * numpad_outline/numpad_submit shapes (mutated copies, so other keys sharing the same
+     * drawable constant state are unaffected) rather than replacing the whole key background,
+     * which would otherwise discard the checkmark.
+     */
+    private Drawable createAccentSubmitDrawable(@ColorInt int accentColor) {
+        Drawable pill = ContextCompat.getDrawable(context, R.drawable.numpad_outline);
+        Drawable check = ContextCompat.getDrawable(context, R.drawable.numpad_submit);
+        if (pill == null || check == null) return null;
+        pill = pill.mutate();
+        check = check.mutate();
+        DrawableCompat.setTint(pill, accentColor);
+
+        LayerDrawable layered = new LayerDrawable(new Drawable[]{pill, check});
+        int checkWidthPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 18, context.getResources().getDisplayMetrics());
+        int checkHeightPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 13, context.getResources().getDisplayMetrics());
+        layered.setLayerGravity(1, Gravity.CENTER);
+        layered.setLayerSize(1, checkWidthPx, checkHeightPx);
+
+        return createRippleDrawable(layered);
+    }
+
+    /**
+     * Rebuilds the decimal-point key's "after point" ring (an outer ring color with an inset
+     * "hole" showing the screen color underneath) with client-chosen colors, instead of the
+     * library's default red-on-numpad_background. Reuses numpad_outline twice -- once full size
+     * for the ring, once inset by the same 2dp the original numpad_outline_red.xml used for its
+     * inner path -- rather than touching that fixed two-tone vector directly, since tinting it as
+     * a whole would recolor both paths to the same color and erase the ring effect.
+     */
+    private Drawable createAfterPointRingDrawable(@ColorInt int ringColor, @ColorInt int holeColor) {
+        Drawable outer = tintedCopy(R.drawable.numpad_outline, ringColor);
+        Drawable inner = tintedCopy(R.drawable.numpad_outline, holeColor);
+        if (outer == null || inner == null) return null;
+
+        LayerDrawable layered = new LayerDrawable(new Drawable[]{outer, inner});
+        int insetPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 2, context.getResources().getDisplayMetrics());
+        layered.setLayerInset(1, insetPx, insetPx, insetPx, insetPx);
+
+        return createRippleDrawable(layered);
     }
 
     public void setUseBottomSheet(boolean useBottomSheet) {
@@ -308,8 +425,19 @@ public class NumPadInputView implements View.OnClickListener {
     public void updateBackground(boolean isAfterPoint) {
         if (numPoint == null) return;
         if (isAfterPoint) {
-            numPoint.setTextColor(ContextCompat.getColor(context, R.color.numpad_red));
-            numPoint.setBackgroundResource(R.drawable.numpad_red_ripple);
+            boolean customized = currentStyle != null
+                    && (currentStyle.getAfterPointColor() != null || currentStyle.getResultBackgroundColor() != null);
+            if (customized) {
+                int ringColor = currentStyle.getAfterPointColor() != null
+                        ? currentStyle.getAfterPointColor() : ContextCompat.getColor(context, R.color.numpad_red);
+                int holeColor = currentStyle.getResultBackgroundColor() != null
+                        ? currentStyle.getResultBackgroundColor() : ContextCompat.getColor(context, R.color.numpad_background);
+                numPoint.setTextColor(ringColor);
+                numPoint.setBackground(createAfterPointRingDrawable(ringColor, holeColor));
+            } else {
+                numPoint.setTextColor(ContextCompat.getColor(context, R.color.numpad_red));
+                numPoint.setBackgroundResource(R.drawable.numpad_red_ripple);
+            }
         } else {
             if (currentStyle != null && currentStyle.getKeyTextColor() != null) {
                 numPoint.setTextColor(currentStyle.getKeyTextColor());

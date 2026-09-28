@@ -5,4 +5,6 @@
     <color name="numpad_red">#F22E38</color>
     <color name="numpad_black">#262B36</color>
     <color name="numpad_background">#F7F7FA</color>
+    <color name="numpad_divider">#E6E8ED</color>
+    <color name="numpad_handle">#D1D6DE</color>
 </resources>

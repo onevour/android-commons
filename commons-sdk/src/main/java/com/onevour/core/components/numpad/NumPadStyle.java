@@ -18,6 +18,12 @@ public class NumPadStyle {
     private Float keyTextSizePx;
     private Drawable keyBackgroundDrawable;
     private Integer keyBackgroundColor;
+    private Integer accentColor;
+    private Integer resultBackgroundColor;
+    private Integer afterPointColor;
+    private Integer dividerColor;
+    private Integer handleColor;
+    private Integer rippleColor;
 
     public NumPadStyle() {
     }
@@ -60,6 +66,53 @@ public class NumPadStyle {
 
     public Integer getKeyBackgroundColor() {
         return keyBackgroundColor;
+    }
+
+    /**
+     * Brand accent color, independent of {@link #getKeyBackgroundColor()}: applied only to the
+     * submit key's pill shape and the Cancel label, leaving the digit keys untouched.
+     */
+    public Integer getAccentColor() {
+        return accentColor;
+    }
+
+    /**
+     * Background tint for the typed-value "screen" ({@code key_result}), independent of
+     * {@link #getResultTextColor()} which only affects its text.
+     */
+    public Integer getResultBackgroundColor() {
+        return resultBackgroundColor;
+    }
+
+    /**
+     * Tint for the decimal-point key's ring and text while it's showing the "after point"
+     * state, in place of the library's default red. The ring's inner "hole" reuses
+     * {@link #getResultBackgroundColor()} when set, else the library's default screen color.
+     */
+    public Integer getAfterPointColor() {
+        return afterPointColor;
+    }
+
+    /**
+     * Tint for the horizontal divider above the Cancel key.
+     */
+    public Integer getDividerColor() {
+        return dividerColor;
+    }
+
+    /**
+     * Tint for the drag-handle bar at the top of the dialog.
+     */
+    public Integer getHandleColor() {
+        return handleColor;
+    }
+
+    /**
+     * Touch-ripple highlight color for every key (digits, submit, Cancel, backspace),
+     * in place of the theme's {@code ?attr/colorControlHighlight} / the library's default gray.
+     */
+    public Integer getRippleColor() {
+        return rippleColor;
     }
 
     public static class Builder {
@@ -113,6 +166,36 @@ public class NumPadStyle {
 
         public Builder setKeyBackgroundColor(@ColorInt int color) {
             style.keyBackgroundColor = color;
+            return this;
+        }
+
+        public Builder setAccentColor(@ColorInt int color) {
+            style.accentColor = color;
+            return this;
+        }
+
+        public Builder setResultBackgroundColor(@ColorInt int color) {
+            style.resultBackgroundColor = color;
+            return this;
+        }
+
+        public Builder setAfterPointColor(@ColorInt int color) {
+            style.afterPointColor = color;
+            return this;
+        }
+
+        public Builder setDividerColor(@ColorInt int color) {
+            style.dividerColor = color;
+            return this;
+        }
+
+        public Builder setHandleColor(@ColorInt int color) {
+            style.handleColor = color;
+            return this;
+        }
+
+        public Builder setRippleColor(@ColorInt int color) {
+            style.rippleColor = color;
             return this;
         }
 

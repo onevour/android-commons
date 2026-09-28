@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="numpad_blue">#759EE3</color>
+    <color name="numpad_red">#F28A8F</color>
+    <color name="numpad_black">#F3F4F6</color>
+    <color name="numpad_background">#232329</color>
+    <color name="numpad_divider">#42454D</color>
+    <color name="numpad_handle">#42464D</color>
+</resources>

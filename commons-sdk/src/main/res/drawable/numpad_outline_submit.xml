@@ -22,7 +22,7 @@
   <!-- Blue button -->
   <path
       android:pathData="M27,0L51,0A27,27 0,0 1,78 27L78,27A27,27 0,0 1,51 54L27,54A27,27 0,0 1,0 27L0,27A27,27 0,0 1,27 0z"
-      android:fillColor="#2166DB" />
+      android:fillColor="@color/numpad_blue" />
 
   <!-- Check icon -->
   <group

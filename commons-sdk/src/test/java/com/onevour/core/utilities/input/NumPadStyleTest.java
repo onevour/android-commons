@@ -24,6 +24,12 @@ public class NumPadStyleTest {
         assertNull(style.getKeyTextSizePx());
         assertNull(style.getKeyBackgroundDrawable());
         assertNull(style.getKeyBackgroundColor());
+        assertNull(style.getAccentColor());
+        assertNull(style.getResultBackgroundColor());
+        assertNull(style.getAfterPointColor());
+        assertNull(style.getDividerColor());
+        assertNull(style.getHandleColor());
+        assertNull(style.getRippleColor());
     }
 
     @Test
@@ -36,6 +42,12 @@ public class NumPadStyleTest {
         int keyColor = 0xFFFF0000;
         float keySize = 24.0f;
         int keyBgColor = 0xFFEEEEEE;
+        int accentColor = 0xFF00AAFF;
+        int resultBgColor = 0xFF111111;
+        int afterPointColor = 0xFFCC0000;
+        int dividerColor = 0xFF999999;
+        int handleColor = 0xFF888888;
+        int rippleColor = 0x33000000;
 
         NumPadStyle style = new NumPadStyle.Builder()
                 .setDialogBackgroundColor(bgColor)
@@ -46,6 +58,12 @@ public class NumPadStyleTest {
                 .setKeyTextColor(keyColor)
                 .setKeyTextSizePx(keySize)
                 .setKeyBackgroundColor(keyBgColor)
+                .setAccentColor(accentColor)
+                .setResultBackgroundColor(resultBgColor)
+                .setAfterPointColor(afterPointColor)
+                .setDividerColor(dividerColor)
+                .setHandleColor(handleColor)
+                .setRippleColor(rippleColor)
                 .build();
 
         assertEquals(Integer.valueOf(bgColor), style.getDialogBackgroundColor());
@@ -56,5 +74,23 @@ public class NumPadStyleTest {
         assertEquals(Integer.valueOf(keyColor), style.getKeyTextColor());
         assertEquals(Float.valueOf(keySize), style.getKeyTextSizePx());
         assertEquals(Integer.valueOf(keyBgColor), style.getKeyBackgroundColor());
+        assertEquals(Integer.valueOf(accentColor), style.getAccentColor());
+        assertEquals(Integer.valueOf(resultBgColor), style.getResultBackgroundColor());
+        assertEquals(Integer.valueOf(afterPointColor), style.getAfterPointColor());
+        assertEquals(Integer.valueOf(dividerColor), style.getDividerColor());
+        assertEquals(Integer.valueOf(handleColor), style.getHandleColor());
+        assertEquals(Integer.valueOf(rippleColor), style.getRippleColor());
+    }
+
+    @Test
+    public void testAccentColorIndependentOfKeyBackgroundColor() {
+        // accentColor must be a separate knob from keyBackgroundColor: setting one must not
+        // populate or affect the other, since they style different, non-overlapping elements
+        // (submit pill + Cancel text vs. every digit key).
+        NumPadStyle accentOnly = new NumPadStyle.Builder().setAccentColor(0xFF00AAFF).build();
+        assertNull(accentOnly.getKeyBackgroundColor());
+
+        NumPadStyle keyBgOnly = new NumPadStyle.Builder().setKeyBackgroundColor(0xFFEEEEEE).build();
+        assertNull(keyBgOnly.getAccentColor());
     }
 }

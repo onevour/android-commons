@@ -9,6 +9,7 @@
     android:orientation="vertical">
 
     <View
+        android:id="@+id/drag_handle"
         android:layout_width="60dp"
         android:layout_height="5dp"
         android:layout_gravity="center"
@@ -301,6 +302,7 @@
     </LinearLayout>
 
     <View
+        android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@drawable/numpad_divider" />

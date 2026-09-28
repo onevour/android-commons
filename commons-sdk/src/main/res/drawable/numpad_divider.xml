@@ -20,5 +20,5 @@
     android:viewportHeight="1">
   <path
       android:pathData="M0,0h320v1h-320z"
-      android:fillColor="#E6E8ED"/>
+      android:fillColor="@color/numpad_divider"/>
 </vector>
