@@ -5,10 +5,11 @@
  */
 package com.onevour.core.rest.components;
 
+import com.onevour.core.rest.RestLog;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+import android.os.SystemClock;
 
 import com.onevour.core.rest.configurations.HttpTimeout;
 import com.onevour.core.rest.listener.HttpListener;
@@ -89,6 +90,7 @@ public class HttpRequest<T> {
     }
 
     private void requestHTTP() {
+        final long startedAt = SystemClock.elapsedRealtime();
         final StringBuffer response = new StringBuffer();
         HttpURLConnection conn = null;
         int responseCode = 0;
@@ -103,6 +105,7 @@ public class HttpRequest<T> {
             enableHeader(conn);
             enableBody(conn);
             responseCode = conn.getResponseCode();
+            RestLog.basic(method() + " " + endpoint + " → " + responseCode + " (" + (SystemClock.elapsedRealtime() - startedAt) + " ms)");
 
             HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
@@ -112,6 +115,7 @@ public class HttpRequest<T> {
             }
             if (responseCode >= 200 && responseCode < 300) {
                 buildResponse(conn, response);
+                RestLog.body("  " + response);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
                 errorHandler(httpResponse);
@@ -132,6 +136,7 @@ public class HttpRequest<T> {
     }
 
     private void requestHTTPS() {
+        final long startedAt = SystemClock.elapsedRealtime();
         final StringBuffer response = new StringBuffer();
         HttpsURLConnection conn = null;
         int responseCode = 0;
@@ -147,6 +152,7 @@ public class HttpRequest<T> {
             enableSSLOnApiBeforeLollipop(conn);
             enableBody(conn);
             responseCode = conn.getResponseCode();
+            RestLog.basic(method() + " " + endpoint + " → " + responseCode + " (" + (SystemClock.elapsedRealtime() - startedAt) + " ms)");
             HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
             if (responseCode == 204) {
@@ -156,6 +162,7 @@ public class HttpRequest<T> {
             if (responseCode >= 200 && responseCode < 300) {
 
                 buildResponse(conn, response);
+                RestLog.body("  " + response);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
                 errorHandler(httpResponse);
@@ -206,15 +213,20 @@ public class HttpRequest<T> {
     }
 
     private void enableHeader(HttpURLConnection conn) {
-        if (header == null) return;
+        if (header != null) {
+            for (Map.Entry<String, List<String>> entry : header.getHeaders().entrySet()) {
+                List<String> values = entry.getValue();
+                for (String value : values) {
+                    RestLog.header(entry.getKey(), value);
+                    conn.setRequestProperty(entry.getKey(), value);
+                }
 
-        for (Map.Entry<String, List<String>> entry : header.getHeaders().entrySet()) {
-            List<String> values = entry.getValue();
-            for (String value : values) {
-                Log.d(TAG, "add Header: " + entry.getKey() + "=" + value);
-                conn.setRequestProperty(entry.getKey(), value);
             }
-
+        }
+        // the app's own User-Agent wins; the default only when it declares none
+        if (header == null || header.get("User-Agent") == null) {
+            RestLog.header("user-agent", HttpHeaders.DEFAULT_USER_AGENT);
+            conn.setRequestProperty("User-Agent", HttpHeaders.DEFAULT_USER_AGENT);
         }
     }
 
@@ -226,7 +238,7 @@ public class HttpRequest<T> {
                     TLSSocketFactory sc = new TLSSocketFactory();
                     conn.setSSLSocketFactory(sc);
                 } catch (Exception e) {
-                    Log.e(TAG, "" + e.getMessage());
+                    RestLog.error("TLS for " + endpoint, e);
                 }
             }
         }
@@ -237,7 +249,7 @@ public class HttpRequest<T> {
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
                 if (Objects.isNull(listener)) {
-                    Log.d(TAG, "listener not implement");
+                    RestLog.basic("listener not implement");
                     return;
                 }
                 if (Objects.isNull(responseType) && Objects.isNull(response)) {
@@ -280,22 +292,23 @@ public class HttpRequest<T> {
 
     private void errorHandler(int responseCode, Exception error) {
         if (Objects.isNull(listener)) {
-            Log.d(TAG, "listener not implement");
+            RestLog.basic("listener not implement");
             return;
         }
         new Handler(Looper.getMainLooper()).post(() -> {
             listener.onError(new HttpErrorResponse(responseCode, error));
         });
-        Log.e(TAG, error.getMessage(), error);
+        RestLog.error(method() + " " + endpoint + " failed", error);
     }
 
     private void errorHandler(HttpResponse httpResponse) {
         if (Objects.isNull(listener)) {
-            Log.d(TAG, "listener not implement");
+            RestLog.basic("listener not implement");
             return;
         }
         new Handler(Looper.getMainLooper()).post(() -> listener.onError(new HttpErrorResponse(httpResponse)));
-        Log.e(TAG, "error hit api ".concat(endpoint).concat(" | ").concat(String.valueOf(httpResponse)).concat(" | ").concat(method()));
+        RestLog.error("error hit api " + endpoint + " | " + httpResponse.getCode() + " | " + method(), null);
+        RestLog.body("  " + httpResponse);
     }
 
     /**

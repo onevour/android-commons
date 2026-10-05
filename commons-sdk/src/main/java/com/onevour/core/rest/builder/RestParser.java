@@ -1,6 +1,6 @@
 package com.onevour.core.rest.builder;
 
-import android.util.Log;
+import com.onevour.core.rest.RestLog;
 
 import com.onevour.core.rest.annotations.Body;
 import com.onevour.core.rest.annotations.Delete;
@@ -115,8 +115,7 @@ public class RestParser {
                     Path path = (Path) annotation;
                     String name = path.value();
                     paths.put(name, value);
-                    Log.d(TAG, "Path name  = " + name);
-                    Log.d(TAG, "Path value = " + value);
+                    RestLog.body("  path " + name + " = " + value);
                 }
                 if (annotation instanceof Body) {
                     this.body = value;
@@ -161,6 +160,8 @@ public class RestParser {
     }
 
     private void updateUrlFromQuery(Map<String, Object> queries) throws UnsupportedEncodingException {
+        // no @Query: the url as it is (a bare "?" was added to every call)
+        if (queries.isEmpty()) return;
         StringBuilder query = new StringBuilder();
 
         for (Map.Entry<String, Object> entry : queries.entrySet()) {

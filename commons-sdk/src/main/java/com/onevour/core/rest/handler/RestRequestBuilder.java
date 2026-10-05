@@ -1,5 +1,6 @@
 package com.onevour.core.rest.handler;
 
+import com.onevour.core.rest.RestLog;
 import android.util.Log;
 
 import com.onevour.core.rest.components.HttpHeaders;
@@ -44,7 +45,7 @@ public class RestRequestBuilder {
     public RestRequestBuilder validateToken() {
         String refreshToken = session.findString("API_TOKEN");
         this.validateToken = JWTCommons.isExpired(refreshToken);
-        Log.d(TAG, "token expired add new request " + validateToken);
+        RestLog.basic("token expired add new request " + validateToken);
         return this;
     }
 
@@ -116,7 +117,7 @@ public class RestRequestBuilder {
         String refreshToken = session.findString("API_TOKEN_REFRESH");
         JWTTokenRefreshRequest request = new JWTTokenRefreshRequest();
         request.setRefreshToken(refreshToken);
-        Log.d(TAG, "request token refresh with id " + refreshToken);
+        RestLog.basic("request token refresh with id " + RestLog.mask(refreshToken));
         /*
         RestRequest.post(refreshTokenUrl, request, new HttpListener<Response<JWTTokenRefreshResponse>>() {
             @Override

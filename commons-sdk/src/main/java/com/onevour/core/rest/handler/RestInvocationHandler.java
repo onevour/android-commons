@@ -1,11 +1,12 @@
 package com.onevour.core.rest.handler;
 
-import android.util.Log;
+import com.onevour.core.rest.RestLog;
 
 import com.onevour.core.rest.builder.RestParser;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Locale;
 
 public class RestInvocationHandler implements InvocationHandler {
 
@@ -25,12 +26,10 @@ public class RestInvocationHandler implements InvocationHandler {
                     "Repository method must return void"
             );
         }
-        Log.d(TAG, "Repository : " + repositoryClass.getSimpleName());
-        Log.d(TAG, "Method     : " + method.getName());
-
         RestParser configuration = new RestParser(method);
         configuration.resolveArgument(args);
-        Log.d(TAG, "Base URL   : " + configuration.getUrl());
+        RestLog.basic(String.valueOf(configuration.getMethodName()).toUpperCase(Locale.ROOT) + " " + configuration.getUrl()
+                + "  [" + repositoryClass.getSimpleName() + "." + method.getName() + "]");
 
         if ("get".equalsIgnoreCase(configuration.getMethodName())) {
             RestRequest.get(configuration.getUrl(), configuration.getTimeout(), configuration.getHeaders(), configuration.getHttpListener());

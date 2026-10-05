@@ -5,9 +5,9 @@
  */
 package com.onevour.core.rest.handler;
 
+import com.onevour.core.rest.RestLog;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -73,7 +73,8 @@ public class RestExecutor {
                     responseString.append(s);
                 }
                 final Type responseType = getResponseType(listener);
-                Log.d(TAG, responseString.toString());
+                RestLog.basic("upload → " + multipart.getResponseCode());
+                RestLog.body("  " + responseString);
                 if (null == responseType) {
                     T responseBody = (T) responseString.toString();
                     responseHttp.setBody(responseBody);
@@ -91,16 +92,14 @@ public class RestExecutor {
                 }
             } catch (final IOException e) {
 
-                for (StackTraceElement s : e.getStackTrace()) {
-                    Log.e(TAG, String.valueOf(s));
-                }
+                RestLog.error("upload failed", e);
                 HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode(), e);
                 handler.post(() -> listener.onError(httpErrorResponse));
             } catch (JsonSyntaxException e) {
                 HttpErrorResponse httpErrorResponse = new HttpErrorResponse(multipart.getResponseCode());
                 handler.post(() -> listener.onError(httpErrorResponse));
             } finally {
-                Log.d(TAG, "process upload finish");
+                RestLog.basic("process upload finish");
             }
         });
     }

@@ -8,10 +8,12 @@ import java.util.Objects;
 
 public class HttpHeaders {
 
+    /** Sent when the app declares no User-Agent of its own. */
+    public static final String DEFAULT_USER_AGENT = "EvoRest/1.0";
+
     private Map<String, List<String>> headers = new HashMap<>();
 
     public HttpHeaders() {
-        putIfAbsent("User-Agent", "EvoRest/1.0");
     }
 
     public HttpHeaders(Map<String, List<String>> headerFields) {

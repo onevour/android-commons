@@ -4,6 +4,7 @@ package com.onevour.core.rest.components;
  * Created by Zuliadin on 06/06/2017.
  */
 
+import com.onevour.core.rest.RestLog;
 import android.content.Context;
 import android.util.Log;
 
@@ -83,7 +84,7 @@ public class HttpMultipart {
     }
 
     private void initializeHttp(Context context, String requestURL, int timeout) throws IOException {
-        Log.d(TAG, "upload url : ".concat(requestURL));
+        RestLog.basic("upload url : ".concat(requestURL));
         this.context = context;
         URL url = new URL(requestURL);
         httpConn = (HttpURLConnection) url.openConnection();
