@@ -24,6 +24,8 @@ public class NumPadStyle {
     private Integer dividerColor;
     private Integer handleColor;
     private Integer rippleColor;
+    /** Cancel label in capitals; null keeps the layout's (capitals). */
+    private Boolean cancelAllCaps;
 
     public NumPadStyle() {
     }
@@ -115,6 +117,10 @@ public class NumPadStyle {
         return rippleColor;
     }
 
+    public Boolean getCancelAllCaps() {
+        return cancelAllCaps;
+    }
+
     public static class Builder {
 
         private final NumPadStyle style = new NumPadStyle();
@@ -196,6 +202,12 @@ public class NumPadStyle {
 
         public Builder setRippleColor(@ColorInt int color) {
             style.rippleColor = color;
+            return this;
+        }
+
+        /** false for an app whose buttons are not in capitals (the default is capitals). */
+        public Builder setCancelAllCaps(boolean allCaps) {
+            style.cancelAllCaps = allCaps;
             return this;
         }
 

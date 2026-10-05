@@ -129,6 +129,9 @@ public class NumPadInputView implements View.OnClickListener {
 
         titleRight.setOnClickListener(v -> {
             if (Objects.isNull(listener)) return;
+            // no max set (Double.MAX_VALUE): nothing to fill; the empty label takes half the title
+            // row, and a tap there put Double.MAX_VALUE in the field
+            if (!hasMax()) return;
             listener.submitToMaxValue();
         });
 
@@ -284,6 +287,10 @@ public class NumPadInputView implements View.OnClickListener {
 
         if (style.getHandleColor() != null && dragHandle != null) {
             dragHandle.setBackground(tintedCopy(R.drawable.numpad_rectangle, style.getHandleColor()));
+        }
+
+        if (style.getCancelAllCaps() != null && numCancel != null) {
+            numCancel.setAllCaps(style.getCancelAllCaps());
         }
 
         if (style.getRippleColor() != null) {
@@ -485,6 +492,11 @@ public class NumPadInputView implements View.OnClickListener {
         titleContent.setVisibility(View.VISIBLE);
         titleRight.setVisibility(View.VISIBLE);
         titleRight.setText(title);
+    }
+
+    /** A max was set for this pad (the default, Double.MAX_VALUE, means none). */
+    private boolean hasMax() {
+        return max < Double.MAX_VALUE && !Double.isInfinite(max);
     }
 
     public void showMaxValue() {
