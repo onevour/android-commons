@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.AdapterListUpdateCallback;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,25 +51,42 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     private Type modelType;
 
+    private RecyclerView recyclerView;
 
-    private AsyncListDiffer<E> asyncListDiffer = new AsyncListDiffer<E>(this, new DiffUtil.ItemCallback<E>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull E oldItem, @NonNull E newItem) {
-            return Objects.equals(oldItem, newItem);
-        }
+    private boolean keepAtTop;
 
-        @Override
-        public boolean areContentsTheSame(@NonNull E oldItem, @NonNull E newItem) {
-            return Objects.equals(oldItem, newItem);
-        }
-    });
+    // kept until a list is shown: a newer list cancels the callback of the one before it
+    private boolean scrollToTopPending;
 
+    // changes the list right away until registerAsyncListDiffer() switches to a diff
+    private ListUpdater<E> updater = new DirectListUpdater<>(new AdapterListUpdateCallback(this),
+            this::notifyDataSetChanged, new ArrayList<>());
 
     protected AdapterGeneric() {
         registerHolder();
     }
 
     protected abstract void registerHolder();
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.recyclerView = recyclerView;
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        if (this.recyclerView == recyclerView) this.recyclerView = null;
+    }
+
+    /**
+     * a list showing its first row keeps showing it when rows come in above the visible ones
+     * (e.g. the first load under a footer), instead of staying on the rows it showed
+     */
+    public void setKeepAtTop(boolean keepAtTop) {
+        this.keepAtTop = keepAtTop;
+    }
 
     /**
      * register if use view binding
@@ -76,12 +95,17 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
         registerBindView(1, holder);
     }
 
+    /**
+     * diff new lists instead of replacing them, e.g. so a new order only moves rows; without it
+     * the list changes right away. Rows are told apart by the differ's ItemCallback (an id),
+     * not by AdapterModel, which has no equals
+     */
     protected void registerAsyncListDiffer(AsyncListDiffer<E> asyncListDiffer) {
-        this.asyncListDiffer = asyncListDiffer;
+        this.updater = new DiffListUpdater<>(asyncListDiffer, updater.latest());
     }
 
     protected void registerAsyncListDiffer(DiffUtil.ItemCallback<E> diffCallback) {
-        this.asyncListDiffer = new AsyncListDiffer<>(this, diffCallback);
+        registerAsyncListDiffer(new AsyncListDiffer<>(this, diffCallback));
     }
 
     protected <VH extends HolderGeneric> void registerBindView(int type, Class<VH> holder) {
@@ -100,7 +124,7 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
     @Override
     public int getItemViewType(int position) {
         Log.d(TAG, "item view type: ".concat(String.valueOf(position)));
-        AdapterModel value = asyncListDiffer.getCurrentList().get(position);
+        AdapterModel value = updater.shown().get(position);
         if (ValueOf.nonNull(value)) {
             return value.getType();
         }
@@ -183,8 +207,8 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
         if (overrides[0]) holder.onBindViewHolder(o);
         if (overrides[1]) holder.onBindViewHolder(o, position);
         if (overrides[2]) holder.onBindViewHolder(o, position, size);
-        if (overrides[3]) holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position);
-        if (overrides[4]) holder.onBindViewHolder(asyncListDiffer.getCurrentList(), position, size);
+        if (overrides[3]) holder.onBindViewHolder(updater.shown(), position);
+        if (overrides[4]) holder.onBindViewHolder(updater.shown(), position, size);
         if (overrides[5])
             holder.onBindViewHolder(o, position, 0 == position && !isLoader, position == getItemCount() - 1 && !isLoader);
         Log.d(TAG, "bind position ".concat(String.valueOf(position)));
@@ -192,7 +216,7 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     @Override
     public int getItemCount() {
-        return this.asyncListDiffer.getCurrentList().size();
+        return updater.shown().size();
     }
 
     public void setHolderListener(HolderGeneric.Listener holderListener) {
@@ -208,9 +232,7 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
             Log.w(TAG, "cannot insert null value!");
             return;
         }
-        List<E> currentList = getAdapterList();
-        currentList.add(o);
-        this.asyncListDiffer.submitList(currentList);
+        updater.append(Collections.singletonList(o), this::onShown);
     }
 
     public void addMore(final List<E> adapterList) {
@@ -219,9 +241,7 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     public void addMore(final List<E> adapterList, boolean isRemoveLoader) {
         if (isRemoveLoader) removeLoader();
-        List<E> values = getAdapterList();
-        values.addAll(adapterList);
-        this.asyncListDiffer.submitList(values);
+        updater.append(adapterList, this::onShown);
     }
 
     public void setValue(List<E> values) {
@@ -232,27 +252,64 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
      * reset adapter and add new all
      */
     public void setValue(List<E> values, boolean isRemoveLoader) {
+        setValue(values, isRemoveLoader, null);
+    }
+
+    /**
+     * reset adapter and add new all; committed runs once the new list is shown
+     * (with a diff, that is after it is computed off the main thread), e.g. to scroll to the first row
+     */
+    public void setValue(List<E> values, Runnable committed) {
+        setValue(values, true, committed);
+    }
+
+    public void setValue(List<E> values, boolean isRemoveLoader, Runnable committed) {
         if (isRemoveLoader) removeLoader();
-        ArrayList<E> newValues = new ArrayList<>(values);
-        asyncListDiffer.submitList(newValues);
+        if (keepAtTop && recyclerView != null && !recyclerView.canScrollVertically(-1)) {
+            scrollToTopPending = true;
+        }
+        updater.set(values, () -> {
+            onShown();
+            if (committed != null) committed.run();
+        });
+    }
+
+    /**
+     * reset adapter and add new all, then show the first row (e.g. after a new sort); with a diff,
+     * scrolling right away would be undone by the rows moving once the diff is applied
+     */
+    public void setValueToTop(List<E> values) {
+        scrollToTopPending = true;
+        setValue(values);
     }
 
     public void updateItem(int index, E value) {
-        List<E> newValues = getAdapterList();
-        newValues.set(index, BeanCopy.gson(value, modelType()));
-        this.asyncListDiffer.submitList(newValues);
+        updater.replace(index, BeanCopy.gson(value, modelType()), this::onShown);
     }
 
     public void clear() {
-        this.asyncListDiffer.submitList(new ArrayList<>());
+        updater.set(new ArrayList<>(), this::onShown);
     }
 
+    // a list is shown: a scroll to the top asked for earlier (maybe for a list a newer one replaced) happens now
+    private void onShown() {
+        if (!scrollToTopPending) return;
+        scrollToTopPending = false;
+        if (recyclerView != null) recyclerView.scrollToPosition(0);
+    }
+
+    /**
+     * the values as last set, including changes not shown yet; a copy, change it and set it back
+     */
     public List<E> getAdapterList() {
-        return new ArrayList<>(this.asyncListDiffer.getCurrentList());
+        return new ArrayList<>(updater.latest());
     }
 
+    /**
+     * the item shown at this position
+     */
     public E getItem(int index) {
-        return getAdapterList().get(index);
+        return updater.shown().get(index);
     }
 
     public void showLoader() {
