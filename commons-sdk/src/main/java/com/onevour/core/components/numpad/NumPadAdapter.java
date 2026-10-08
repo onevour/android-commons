@@ -22,8 +22,6 @@ public interface NumPadAdapter {
 
     int getValueInteger();
 
-
-
     boolean isAfterPoint();
 
     void updateMinMax(double min, double max);
