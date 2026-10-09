@@ -46,6 +46,14 @@
             android:exported="false"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".modules.rest.RestSampleActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".modules.permission.PermissionSampleActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".modules.location.LocationSettingsActivity"
             android:exported="false"
             android:theme="@style/AppTheme.NoActionBar" />

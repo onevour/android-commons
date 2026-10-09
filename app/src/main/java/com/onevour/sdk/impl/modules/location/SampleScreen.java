@@ -12,12 +12,12 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.Objects;
 
 /** The location sample screens' frame: a toolbar with back, and content kept clear of the system bars (edge to edge). */
-final class SampleScreen {
+public final class SampleScreen {
 
     private SampleScreen() {
     }
 
-    static void setUp(AppCompatActivity activity, Toolbar toolbar, View content, CharSequence title) {
+    public static void setUp(AppCompatActivity activity, Toolbar toolbar, View content, CharSequence title) {
         activity.setSupportActionBar(toolbar);
         ActionBar actionBar = activity.getSupportActionBar();
         if (Objects.nonNull(actionBar)) {

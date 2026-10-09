@@ -5,6 +5,8 @@
  */
 package com.onevour.core.rest.components;
 
+import com.onevour.core.rest.RestExchange;
+import com.onevour.core.rest.RestInspector;
 import com.onevour.core.rest.RestLog;
 import android.os.Build;
 import android.os.Handler;
@@ -25,6 +27,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,9 +59,24 @@ public class HttpRequest<T> {
 
     private HttpListener<T> listener;
 
+    /** The body's type when the caller knows it (generated repository code); null: from the listener. */
+    private Type responseType;
+
+    /** Repository.method, for RestInspector. */
+    private String source;
+
+    /** This request for RestInspector; null while nobody observes. */
+    private RestExchange exchange;
+
     // DYNAMIC
     public HttpRequest(String url, String method, HttpTimeout timeout, HttpHeaders header, String body, HttpListener<T> listener) {
         initialize(url, method, timeout, header, body, listener);
+    }
+
+    /** With the body's type known (the generated repository code knows it from the method). */
+    public HttpRequest(String url, String method, HttpTimeout timeout, HttpHeaders header, String body, Type responseType, HttpListener<T> listener) {
+        initialize(url, method, timeout, header, body, listener);
+        this.responseType = responseType;
     }
 
     private void initialize(String url, String method, HttpTimeout timeout, HttpHeaders header, String body, HttpListener<T> listener) {
@@ -69,8 +89,15 @@ public class HttpRequest<T> {
         this.listener = listener;
     }
 
+    /** Repository.method that sends it, shown by RestInspector. */
+    public HttpRequest<T> source(String source) {
+        this.source = source;
+        return this;
+    }
+
     public void request() {
         if (null == endpoint || "".equalsIgnoreCase(endpoint)) return;
+        if (RestInspector.isActive()) exchange = RestInspector.begin(method, endpoint, source, sentHeaders(), body);
         if (endpoint.startsWith("https")) {
             requestHTTPS();
         } else {
@@ -110,14 +137,17 @@ public class HttpRequest<T> {
             HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
             if (responseCode == 204) {
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), null, null);
                 successHandler(null, httpResponse, null);
                 return;
             }
             if (responseCode >= 200 && responseCode < 300) {
                 buildResponse(conn, response);
                 RestLog.body("  " + response);
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), response.toString(), null);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), errorBody(conn), null);
                 errorHandler(httpResponse);
             }
 //        } catch (final JsonParseException ex) {
@@ -129,6 +159,7 @@ public class HttpRequest<T> {
 //        } catch (final IOException ex) {
 //            errorHandler(ex);
         } catch (final Exception ex) {
+            RestInspector.complete(exchange, responseCode, null, null, ex);
             errorHandler(responseCode, ex);
         } finally {
             if (null != conn) conn.disconnect();
@@ -156,6 +187,7 @@ public class HttpRequest<T> {
             HttpResponse httpResponse = new HttpResponse(conn.getHeaderFields());
             httpResponse.setCode(responseCode);
             if (responseCode == 204) {
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), null, null);
                 successHandler(null, httpResponse, null);
                 return;
             }
@@ -163,8 +195,10 @@ public class HttpRequest<T> {
 
                 buildResponse(conn, response);
                 RestLog.body("  " + response);
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), response.toString(), null);
                 successHandler(getResponseType(), httpResponse, response);
             } else {
+                RestInspector.complete(exchange, responseCode, conn.getHeaderFields(), errorBody(conn), null);
                 errorHandler(httpResponse);
             }
 //        } catch (final JsonParseException ex) {
@@ -176,6 +210,7 @@ public class HttpRequest<T> {
 //        } catch (final IOException ex) {
 //            errorHandler(ex);
         } catch (final Exception ex) {
+            RestInspector.complete(exchange, responseCode, null, null, ex);
             errorHandler(responseCode, ex);
         } finally {
             if (null != conn) conn.disconnect();
@@ -202,6 +237,36 @@ public class HttpRequest<T> {
             response.append(inputLine);
         }
         in.close();
+    }
+
+    /** An error status's body, read only for RestInspector (the listener never got it). */
+    private String errorBody(HttpURLConnection conn) {
+        if (Objects.isNull(exchange)) return null;
+        try {
+            if (Objects.isNull(conn.getErrorStream())) return null;
+            StringBuilder text = new StringBuilder();
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                String line;
+                while (Objects.nonNull(line = in.readLine())) text.append(line).append('\n');
+            }
+            return text.toString().trim();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** The headers enableHeader sends, User-Agent included. */
+    private Map<String, List<String>> sentHeaders() {
+        Map<String, List<String>> sent = new LinkedHashMap<>();
+        if (Objects.nonNull(header)) {
+            for (Map.Entry<String, List<String>> entry : header.getHeaders().entrySet()) {
+                sent.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+            }
+        }
+        if (Objects.isNull(header) || Objects.isNull(header.get("User-Agent"))) {
+            sent.put("User-Agent", Collections.singletonList(HttpHeaders.DEFAULT_USER_AGENT));
+        }
+        return sent;
     }
 
     private boolean output() {
@@ -259,11 +324,12 @@ public class HttpRequest<T> {
                 HttpHeaders headers = httpResponse.getHeaders();
                 String contentType = headers.get("Content-Type");
                 String getMediaType = getMediaType(contentType);
-                // unknow content type response
+                // unknown content type: the raw text, once (the listener was called twice before)
                 if (Objects.isNull(contentType)) {
                     T body = (T) response.toString();
                     httpResponse.setBody(body);
                     listener.onSuccess(httpResponse);
+                    return;
                 }
                 if ("application/json".equalsIgnoreCase(getMediaType)) {
                     if (Objects.isNull(responseType)) {
@@ -312,10 +378,16 @@ public class HttpRequest<T> {
     }
 
     /**
-     * get type from interface
+     * The body's type: given by the caller (generated code), said by a {@link HttpListener.Typed}
+     * listener (lambdas), or read from the listener's class (an anonymous HttpListener<X>).
      */
     private Type getResponseType() {
+        if (null != responseType) return responseType;
         if (null == listener) return null;
+        if (listener instanceof HttpListener.Typed) {
+            Type typed = ((HttpListener.Typed) listener).responseType();
+            if (null != typed) return typed;
+        }
         Type[] types = listener.getClass().getGenericInterfaces();
         for (Type type : types) {
             if (type instanceof ParameterizedType) {

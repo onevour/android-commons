@@ -9,24 +9,24 @@ import java.util.Locale;
 import java.util.Objects;
 
 /** The chips of the location sample screens: green good, amber fair, red bad, grey neutral (text contrast AA). */
-final class SampleChips {
+public final class SampleChips {
 
     private SampleChips() {
     }
 
-    static void good(TextView view, String text) {
+    public static void good(TextView view, String text) {
         set(view, R.drawable.history_chip_good, 0xFF1E6B34, text);
     }
 
-    static void warn(TextView view, String text) {
+    public static void warn(TextView view, String text) {
         set(view, R.drawable.history_chip_warn, 0xFF8A4B00, text);
     }
 
-    static void bad(TextView view, String text) {
+    public static void bad(TextView view, String text) {
         set(view, R.drawable.history_chip_bad, 0xFFA11B1B, text);
     }
 
-    static void neutral(TextView view, String text) {
+    public static void neutral(TextView view, String text) {
         set(view, R.drawable.history_chip_neutral, 0xFF37474F, text);
     }
 

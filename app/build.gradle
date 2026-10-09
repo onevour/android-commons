@@ -51,6 +51,8 @@ dependencies {
     implementation project(':commons-sdk')
     // location capture sample (the module brings play-services-location, WorkManager, permissions and service)
     implementation project(':commons-sdk-location')
+    // @NeedsPermission / @OnPermissionDenied: generates <Class>Permissions
+    annotationProcessor project(':commons-sdk-processor')
     // location sample: tracking history map (OpenStreetMap, no API key)
     implementation 'org.osmdroid:osmdroid-android:6.1.20'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'

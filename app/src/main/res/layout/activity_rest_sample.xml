@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- android-commons REST: each button opens the request / response detail (RestExchangeDialog) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/repository_kind"
+                style="@style/SampleCardText"
+                android:layout_marginTop="0dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:labelFor="@id/name"
+                android:text="Nama Pokémon"
+                android:textColor="#37474F" />
+
+            <EditText
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:text="pikachu" />
+
+            <Button
+                android:id="@+id/style_b"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Gaya B: data + spesies (@OnAllSuccess)" />
+
+            <Button
+                android:id="@+id/style_a"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Gaya A: daftar 5 pertama (Callbacks)" />
+
+            <Button
+                android:id="@+id/lambda"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Lambda: tipe electric (HttpListener.of)" />
+
+            <Button
+                android:id="@+id/anonymous"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Cara lama: kelas anonim" />
+
+            <Button
+                android:id="@+id/not_found"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Error: nama tidak ada (@OnError)" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="Semua method (JSONPlaceholder)"
+                android:textColor="#263238"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/crud_get"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="GET: list + detail + komentar" />
+
+            <Button
+                android:id="@+id/crud_post"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="POST: buat post" />
+
+            <Button
+                android:id="@+id/crud_put"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="PUT: ganti post" />
+
+            <Button
+                android:id="@+id/crud_patch"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="PATCH: ubah judul" />
+
+            <Button
+                android:id="@+id/crud_delete"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="DELETE: hapus post" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="Error HTTP (httpbin)"
+                android:textColor="#263238"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/error_400"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="400" />
+
+                <Button
+                    android:id="@+id/error_401"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="401" />
+
+                <Button
+                    android:id="@+id/error_404"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="404" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/error_500"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="500" />
+
+                <Button
+                    android:id="@+id/error_503"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="503" />
+
+                <Button
+                    android:id="@+id/error_422"
+                    style="@style/SamplePrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="POST 422" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/error_timeout"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="8dp"
+                android:text="Timeout (jawaban 8 dtk, batas 4,5 dtk)" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

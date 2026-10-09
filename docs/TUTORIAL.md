@@ -128,7 +128,7 @@ Without `android:name`, Android never creates `MyApplication`, so `onCreate` (an
 |---|---|
 | `RefSession` (every save / find, `BaseActivity.session`) | `IllegalStateException: call ContextHelper.init(application) first` |
 | `DimensionValue.dpToPx`, `BaseActivity.dpToPx` | `NullPointerException` |
-| REST client, NumPad, adapters, BeanCopy, Gson helper, formats, `PermissionUtils` | not needed |
+| REST client, NumPad, adapters, BeanCopy, Gson helper, formats, `PermissionHelper` | not needed |
 | `commons-sdk-location` | not needed: it uses the `Application` passed to `LocationCapture.init` |
 
 Notes:
@@ -179,6 +179,12 @@ public interface UserRepository {
 ```java
 UserRepository repository = new RestClient().create(UserRepository.class);
 
+// lambdas
+repository.detail("42", token, HttpListener.of(
+        response -> showUser(response.getBody()),        // UserResponse, parsed
+        error -> showError(error.getCode())));
+
+// or an anonymous class, as before
 repository.create(new UserRequest("Budi"), new HttpListener<UserResponse>() {
     @Override
     public void onSuccess(HttpResponse<UserResponse> response) {
@@ -191,6 +197,65 @@ repository.create(new UserRequest("Budi"), new HttpListener<UserResponse>() {
     }
 });
 ```
+
+### 3.2.1 Generated code (recommended)
+
+Add the processor and the repositories are generated at build time:
+
+```gradle
+annotationProcessor 'com.github.onevour.android-commons:commons-sdk-processor:<tag>'
+```
+
+* `RestClient.create(UserRepository.class)` then returns the generated `UserRepository_Rest`: no Proxy, no reflection, the body type taken from the method's `HttpListener<T>`. Without the processor it falls back to the Proxy; both send exactly the same requests (verified for every verb, query, path, header and body).
+* Mistakes become build errors: a `{id}` in the url without `@Path("id")` (or the other way round), a `@Body` on a `@Get`, a method that returns something, two listeners, `HttpListener<List<? extends X>>`.
+* `HttpListener.of(onSuccess, onError)` gets its body type from the generated code. Without the processor, give it: `HttpListener.of(UserResponse.class, ...)`.
+
+### 3.2.2 Answers to annotated methods: `@OnSuccess` / `@OnError`
+
+**Style B: once per screen.** The screen names the repositories it calls; the processor generates `<Screen>Api` with every repository method minus its listener, answered by the methods named after it:
+
+```java
+@RestCallbacks(CheckInRepository.class)                  // several: @RestCallbacks({A.class, B.class})
+public class CheckInActivity extends AppCompatActivity {
+
+    private final CheckInActivityApi api = new CheckInActivityApi(this);   // or (this, repository) in a test
+
+    void load() {
+        api.store(storeId);                             // no listener: the answer goes to onStore / onStoreFailed
+        api.stock(storeId);
+    }
+
+    @OnSuccess("store")                                  // the repository method's name
+    void onStore(StoreResponse store) { showStore(store); }               // the body, or HttpResponse<StoreResponse>, or nothing
+
+    @OnError("store")                                    // optional; HttpErrorResponse or nothing
+    void onStoreFailed(HttpErrorResponse error) { showMessage("Store not loaded"); }
+
+    @OnSuccess("stock")
+    void onStock(List<StockResponse> stock) { showStock(stock); }
+
+    @OnAllSuccess({"store", "stock"})                    // once both succeeded; a failure starts over
+    void onReady() { binding.checkIn.setEnabled(true); }
+}
+```
+
+The types are checked at build time against the repository (`@OnSuccess("stock")` receiving the wrong type, an unknown repository, two repositories with the same method name are errors); a repository method without `@OnSuccess` is a warning, its answer is only logged.
+
+**Style A: per call.** Any name of your own; `<Screen>Callbacks.<name>(this)` is the listener to pass:
+
+```java
+repository.store(fromId, CheckInActivityCallbacks.storeFrom(this));
+repository.store(toId, CheckInActivityCallbacks.storeTo(this));
+
+@OnSuccess("storeFrom") void onStoreFrom(StoreResponse store) { ... }
+@OnSuccess("storeTo")   void onStoreTo(StoreResponse store)   { ... }
+```
+
+Both styles can be mixed in one screen, and work with or without the generated repository (the listener carries the body type of `@OnSuccess`).
+
+* A screen that is gone gets nothing: an Activity finishing or destroyed, a Fragment no longer added (the screen is held weakly).
+* Callback methods must not be private or static; names are Java names unique in the class.
+* A call chained after another: call the second from the first's `@OnSuccess`.
 
 ### 3.3 Models
 
@@ -229,7 +294,7 @@ RestLog.addSensitiveHeader("X-Session");       // this header's value is masked 
 
 ### 3.6 Pitfalls
 
-* **The listener must be an anonymous class or a named class with a concrete type.** The response type is read from the listener's generic type; a lambda is not possible (two methods), and an erased generic type turns the body into a `String`.
+* **Without the processor, the body type is read from the listener.** Use an anonymous `HttpListener<X>`, `HttpListener.of(X.class, ...)` or `@OnSuccess`; a plain `HttpListener.of(...)` or an erased generic type leaves the body a `String`.
 * **JSON is only parsed when the response `Content-Type` is `application/json`.** Otherwise the body is the raw `String`, and a `ClassCastException` follows where it is used.
 * Timeouts are in seconds, with an effective minimum of 1.5 s (connect) and 4.5 s (read).
 * Non-2xx statuses go to `onError` with an empty `getMessage()`. Read `getCode()`.
@@ -1023,7 +1088,67 @@ String stamp   = DTFormat.nowFull();                      // yyyyMMddHHmmss
 | `ImageHelper` | `compressImage`, `toBase64`, `rotateBitmapByDegree`, `loadImageRounded` | |
 | `Loader`, `ButtonLoader` | loading / success / error state views | must be inflated from XML |
 | `AutoFitGridLayoutManager`, `ViewPagerState` | fixed-column-width grid, ViewPager that keeps state | |
-| `PermissionUtils` | request a fixed set of permissions | asks for location, phone and storage at once: better to request only what you need |
+| `PermissionHelper` | runtime permissions by group (location, camera, storage, bluetooth) | see below |
+
+### Runtime permissions: `PermissionHelper`, `@NeedsPermission`
+
+Permissions are asked by group: `location`, `camera`, `storage`, `bluetooth`, and the optional `phone`, `notifications`. Only the missing ones are asked; no second dialog while one is on screen; Settings (App info) opens only when Android will not show the dialog again, with a toast naming the permissions. `storage` asks only what Android can still grant (`READ_MEDIA_IMAGES` from 13, `READ_EXTERNAL_STORAGE` up to 12L, `WRITE_EXTERNAL_STORAGE` up to 10).
+
+Every screen that asks forwards the answer once (a base activity does it for all):
+
+```java
+@Override
+public void onRequestPermissionsResult(int requestCode, @NonNull String[] names, @NonNull int[] results) {
+    super.onRequestPermissionsResult(requestCode, names, results);
+    PermissionHelper.onRequestPermissionsResult(requestCode, names, results);
+}
+```
+
+**A method that runs only once its permissions are allowed: annotations.** Add the processor next to the library:
+
+```gradle
+implementation 'com.github.onevour.android-commons:commons-sdk:<tag>'
+annotationProcessor 'com.github.onevour.android-commons:commons-sdk-processor:<tag>'
+```
+
+```java
+public class CheckInActivity extends AppCompatActivity {
+
+    @NeedsPermission({"location", "camera"})            // one group: @NeedsPermission("camera")
+    void checkIn(String store) {
+        ...                                             // runs only when every permission is allowed
+    }
+
+    @OnPermissionDenied({"camera", "location"})         // same groups, any order; optional
+    void onCheckInDenied(Set<String> deniedGroups) {    // or no parameter
+        showMessage("Not allowed: " + deniedGroups);    // e.g. [camera]
+    }
+
+    void onClickCheckIn() {
+        CheckInActivityPermissions.checkInWithPermissionCheck(this, "Toko A");   // generated: call this, not checkIn()
+    }
+}
+```
+
+* Allowed already: the method runs at once. Not yet: the system dialog asks; all allowed → the method runs; one refused → the `@OnPermissionDenied` method runs with the groups not allowed (approximate location only counts as `location` refused). When Android will not ask any more, App info opens and the denied method runs.
+* The generated class is `<Class>Permissions` (`Outer_InnerPermissions` for a nested class), in the same package. Works in an Activity, a Fragment or a View.
+* Build errors instead of surprises: a private or static method, an unknown group, a checked exception, a denied method with a parameter other than `Set<String>`.
+* A call made while another permission dialog is on screen is dropped; the screen reference is weak, so a closed screen is never called back.
+* Kotlin: the processor runs through kapt; the annotations and runtime stay the same.
+
+**Inline, for anything else:**
+
+```java
+PermissionHelper permissions = new PermissionHelper();
+permissions.run(this, () -> takePhoto(), denied -> showMessage("Not allowed: " + denied), "camera");
+permissions.run(this, () -> refresh(), "location");                      // nothing to do on a refusal
+
+if (permissions.isGranted(this, permissions.location())) startTracking(); // check only, asks nothing
+if (permissions.requestIfNeeded(this)) startWork();                      // all required groups, true when granted
+PermissionHelper.Result result = PermissionHelper.evaluate(names, results); // missing / message() in onRequestPermissionsResult
+```
+
+Texts are Indonesian; `PermissionHelper.setTexts(texts)` changes them, once in `Application.onCreate()`. The sample app's **Permission** menu shows every case.
 
 Legacy code to avoid in new work:
 
@@ -1138,7 +1263,7 @@ A `maxAgeMs` of 0 requires a fresh location. Registering a customer, for example
 
 1. Call `ContextHelper.init(this)` first in `Application.onCreate()`, and register the class with `android:name` in the manifest.
 2. Every JSON model needs `@Expose` (REST, RefSession, adapter `updateItem`).
-3. REST listeners: anonymous classes with a concrete type; the server must send `Content-Type: application/json`.
+3. REST: add commons-sdk-processor (generated repositories, `@OnSuccess` / `@OnError`); without it give listeners their body type. The server must send `Content-Type: application/json`.
 4. Add gson, recyclerview, material and eventbus to the app yourself.
 5. Call `adapter.setHolderListener(this)` yourself; holders are `public` with a constructor taking exactly their binding; dynamic holder types are > 0, unique, and compared by id in the diff.
 6. `NumPad.destroy()` in `onDestroy`, and `setUseBottomSheet` before `setup`.

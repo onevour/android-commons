@@ -1,0 +1,31 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+// The annotation processor of @NeedsPermission / @OnPermissionDenied (com.onevour.core.permission):
+// apps add it with annotationProcessor next to commons-sdk. Plain Java: it runs inside javac.
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    withSourcesJar()
+}
+
+dependencies {
+    implementation 'com.squareup:javapoet:1.13.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.testing.compile:compile-testing:0.21.0'
+    testImplementation 'com.google.truth:truth:1.4.4'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            from components.java
+            groupId = 'com.onevour.core'
+            artifactId = 'commons-sdk-processor'
+            version = '0.0.2'
+        }
+    }
+}

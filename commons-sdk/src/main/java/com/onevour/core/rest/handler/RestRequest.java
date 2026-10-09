@@ -7,6 +7,8 @@ import com.onevour.core.rest.configurations.HttpTimeout;
 import com.onevour.core.rest.listener.HttpListener;
 import com.onevour.core.utilities.json.gson.GsonHelper;
 
+import java.lang.reflect.Type;
+
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +60,18 @@ public class RestRequest {
         } else {
             queue().add(new HttpRequest(url, "DELETE", timeout, header, GsonHelper.newInstance().getGson().toJson(json), listener));
         }
+    }
+
+    /**
+     * One request of a repository call (RestCall): a String body as it is, anything else as JSON, no
+     * body for GET; responseType null reads it from the listener; source is Repository.method.
+     */
+    static <T> void send(String method, String url, HttpTimeout timeout, HttpHeaders header, Object body, Type responseType, HttpListener<T> listener, String source) {
+        String text = null;
+        if (!"GET".equals(method)) {
+            text = body instanceof String ? (String) body : GsonHelper.newInstance().getGson().toJson(body);
+        }
+        queue().add(new HttpRequest(url, method, timeout, header, text, responseType, listener).source(source));
     }
 
     public static <T> void post(HttpMultipart request, HttpListener<T> listener) {

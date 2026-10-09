@@ -67,6 +67,8 @@ public class MainActivity extends BaseActivity implements SampleAdapter.SampleHo
 //        samples.add(new SampleMV("Injection", DInjectionActivity.class));
         samples.add(new SampleMV("Bluetooth", BluetoothActivity.class));
         samples.add(new SampleMV("Location Capture", LocationCaptureActivity.class));
+        samples.add(new SampleMV("Permission", com.onevour.sdk.impl.modules.permission.PermissionSampleActivity.class));
+        samples.add(new SampleMV("RestRepository", com.onevour.sdk.impl.modules.rest.RestSampleActivity.class));
 //        samples.add(new SampleMV("Chat", ChatActivity.class));
         adapter.setValue(samples);
         session.saveCollection("MENU", samples);

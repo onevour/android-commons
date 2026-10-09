@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- one request of the REST sample: request on top, its response below once it is back -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/SampleCard"
+    android:layout_marginBottom="12dp">
+
+    <TextView
+        style="@style/SampleCardTitle"
+        android:accessibilityHeading="true"
+        android:text="Request" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/method"
+            style="@style/SampleChip"
+            android:layout_marginBottom="0dp" />
+
+        <TextView
+            android:id="@+id/source"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:textColor="#455A64"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        style="@style/RestLabel"
+        android:text="URL" />
+
+    <TextView
+        android:id="@+id/url"
+        style="@style/RestCode" />
+
+    <TextView
+        android:id="@+id/params_label"
+        style="@style/RestLabel"
+        android:text="Query params" />
+
+    <TextView
+        android:id="@+id/params"
+        style="@style/RestCode" />
+
+    <TextView
+        style="@style/RestLabel"
+        android:text="Headers" />
+
+    <TextView
+        android:id="@+id/request_headers"
+        style="@style/RestCode" />
+
+    <TextView
+        android:id="@+id/request_body_label"
+        style="@style/RestLabel"
+        android:text="Body" />
+
+    <TextView
+        android:id="@+id/request_body"
+        style="@style/RestCode" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="#CFD8DC" />
+
+    <TextView
+        style="@style/SampleCardTitle"
+        android:accessibilityHeading="true"
+        android:text="Response" />
+
+    <LinearLayout
+        android:id="@+id/status_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:accessibilityLiveRegion="polite"
+        android:gravity="center_vertical"
+        android:minHeight="32dp"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:indeterminateTint="@color/colorPrimary" />
+
+        <TextView
+            android:id="@+id/status"
+            style="@style/SampleChip"
+            android:layout_marginBottom="0dp" />
+
+        <TextView
+            android:id="@+id/duration"
+            style="@style/SampleChip"
+            android:layout_marginBottom="0dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/error_label"
+        style="@style/RestLabel"
+        android:text="Exception"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/error"
+        style="@style/RestCode"
+        android:textColor="#A11B1B"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/response_body_label"
+        style="@style/RestLabel"
+        android:text="Body"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/response_body"
+        style="@style/RestCode"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/response_body_more"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingStart="0dp"
+        android:text="Tampilkan semua"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimaryDark"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/response_headers_label"
+        style="@style/RestLabel"
+        android:text="Headers"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/response_headers"
+        style="@style/RestCode"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/response_headers_more"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingStart="0dp"
+        android:text="Tampilkan semua"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimaryDark"
+        android:visibility="gone" />
+
+</LinearLayout>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- runtime permissions: @NeedsPermission / @OnPermissionDenied, and PermissionHelper.run inline -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/SampleCardText"
+                android:layout_marginTop="0dp"
+                android:text="Method jalan hanya setelah izinnya diberikan. Belum diizinkan: dialog sistem muncul dulu; diizinkan semua: method jalan; ditolak: method @OnPermissionDenied dipanggil dengan grup yang ditolak." />
+
+            <Button
+                android:id="@+id/photo"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="16dp"
+                android:text="Ambil foto (@NeedsPermission camera)" />
+
+            <Button
+                android:id="@+id/check_in"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="12dp"
+                android:text="Check-in (@NeedsPermission location + camera)" />
+
+            <Button
+                android:id="@+id/inline"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="12dp"
+                android:text="Kamera inline (PermissionHelper.run)" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:accessibilityHeading="true"
+                    android:text="Log"
+                    android:textColor="#263238"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/clear"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="Hapus"
+                    android:textAllCaps="false"
+                    android:textColor="?attr/colorPrimary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/log"
+                style="@style/SampleCard"
+                android:accessibilityLiveRegion="polite"
+                android:fontFamily="monospace"
+                android:minHeight="120dp"
+                android:textColor="#263238"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>
