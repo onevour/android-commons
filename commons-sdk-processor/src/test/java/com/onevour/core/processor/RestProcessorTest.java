@@ -131,9 +131,11 @@ public class RestProcessorTest {
     }
 
     @Test
-    public void placeholderWithoutPath_isABuildError() {
-        assertThat(compile(badRepository("@Get(url = \"/users/{id}\") void detail(@Path(\"userId\") String id, HttpListener<User> cb);")))
-                .hadErrorContaining("{id} in the url has no @Path(\"id\")");
+    public void placeholderWithoutPath_isAWarning() {
+        // as the Proxy did, "{id}" stays in the url: existing repositories keep building and sending the same request
+        Compilation compilation = compile(badRepository("@Get(url = \"/users/{id}\") void detail(@Query(\"id\") String id, HttpListener<User> cb);"));
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadWarningContaining("{id} in the url has no @Path(\"id\") parameter: it is sent as it is");
     }
 
     @Test

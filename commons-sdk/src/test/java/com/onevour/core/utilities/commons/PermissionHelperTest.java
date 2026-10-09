@@ -97,6 +97,13 @@ public class PermissionHelperTest {
     // ------------------------------------------------------------------------------------
 
     @Test
+    public void deniedMessage_namesTheDeniedGroups() {
+        PermissionHelper helper = new PermissionHelper();
+        assertEquals("Izin belum diberikan: Kamera, Lokasi",
+                helper.deniedMessage(new HashSet<>(Arrays.asList("location", "camera"))));
+    }
+
+    @Test
     public void textsCanBeChanged_andTheDefaultsComeBack() {
         PermissionHelper.resetSession();
         PermissionHelper.Texts english = new PermissionHelper.Texts();

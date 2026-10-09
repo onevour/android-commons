@@ -273,8 +273,8 @@ public class RestProcessor extends AbstractProcessor {
         while (matcher.find()) placeholders.add(matcher.group(1));
         for (String placeholder : placeholders) {
             if (!pathNames.contains(placeholder)) {
-                error(method, "{" + placeholder + "} in the url has no @Path(\"" + placeholder + "\") parameter");
-                ok = false;
+                // a warning only: the Proxy sent it as it is too, the generated code keeps the same request
+                warning(method, "{" + placeholder + "} in the url has no @Path(\"" + placeholder + "\") parameter: it is sent as it is");
             }
         }
         for (String path : pathNames) {

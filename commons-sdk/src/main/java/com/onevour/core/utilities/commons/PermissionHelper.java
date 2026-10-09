@@ -479,6 +479,14 @@ public class PermissionHelper {
         texts = Objects.requireNonNull(value);
     }
 
+    /**
+     * "Izin belum diberikan: Kamera, Lokasi" for the groups an @OnPermissionDenied method (or a
+     * {@link Callback#denied}) received.
+     */
+    public String deniedMessage(Set<String> groups) {
+        return String.format(texts.missing, labels(permissions(groups.toArray(new String[0]))));
+    }
+
     /** "Kamera, Lokasi" for these permissions, as Settings groups them. */
     static String labels(Set<String> permissions) {
         Set<String> names = new TreeSet<>();
