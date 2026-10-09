@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+// The location capture of android-commons (com.onevour.core.location): a module of its own, so an app
+// that does not track carries neither its permissions nor play-services-location.
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.onevour.core'
+                artifactId = 'commons-sdk-location'
+                version = '0.0.2'
+            }
+        }
+    }
+}
+
+android {
+    namespace 'com.onevour.core.location'
+    compileSdk = 36
+    defaultConfig {
+        minSdk = 23
+        consumerProguardFiles 'consumer-rules.pro'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+dependencies {
+    // part of the API: apps pass com.google.android.gms.location.Priority values to Config.priority
+    api 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'androidx.work:work-runtime:2.10.0'
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'androidx.annotation:annotation:1.9.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+}

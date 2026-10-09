@@ -11,7 +11,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 groupId = 'com.onevour.core'
-                artifactId = 'sdk'
+                artifactId = 'commons-sdk'
                 version = '0.0.2'
             }
         }

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- home of a field app: tracking kept in sync, menu to the screens that stamp a position -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                style="@style/SampleCard"
+                android:paddingVertical="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="40dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Absen hari ini"
+                        android:textColor="#37474F" />
+
+                    <TextView
+                        android:id="@+id/status_absen"
+                        style="@style/SampleChip"
+                        android:layout_marginEnd="0dp"
+                        android:layout_marginBottom="0dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="0dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="40dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tracking"
+                        android:textColor="#37474F" />
+
+                    <TextView
+                        android:id="@+id/status_tracking"
+                        style="@style/SampleChip"
+                        android:layout_marginEnd="0dp"
+                        android:layout_marginBottom="0dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/status_settings"
+                    style="@style/SampleCardText"
+                    android:layout_marginBottom="4dp" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SampleCardText"
+                android:layout_marginTop="12dp"
+                android:text="Home hanya memanggil LocationCapture.sync saat tampil. Absen, check-in dan register mengambil lokasinya sendiri dengan LocationCapture.current." />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:accessibilityHeading="true"
+                android:text="Transaksi"
+                android:textColor="#263238"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/absen"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Absen" />
+
+                    <TextView
+                    android:id="@+id/absen_value"
+                        style="@style/SampleCardText" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/check_in"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Check-in toko" />
+
+                    <TextView
+                        style="@style/SampleCardText"
+                        android:text="Lokasi GPS saat ini, tunggu maks. 15 detik" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/register"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Register customer" />
+
+                    <TextView
+                        style="@style/SampleCardText"
+                        android:text="Boleh pakai lokasi GPS 2 menit terakhir" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:accessibilityHeading="true"
+                android:text="Tracking"
+                android:textColor="#263238"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/history"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Riwayat tracking" />
+
+                    <TextView
+                        style="@style/SampleCardText"
+                        android:text="Timeline, peta, ringkasan, alamat" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

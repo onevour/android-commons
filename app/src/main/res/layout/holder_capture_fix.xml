@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- one fix of the location service in the sample: when, delivered or dropped, where, how accurate, from where -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/sample_card"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#263238"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/status"
+            style="@style/SampleChip"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="0dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/coordinates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#455A64" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:flexWrap="wrap">
+
+        <TextView
+            android:id="@+id/chip_accuracy"
+            style="@style/SampleChip" />
+
+        <TextView
+            android:id="@+id/chip_source"
+            style="@style/SampleChip" />
+
+        <TextView
+            android:id="@+id/chip_mock"
+            style="@style/SampleChip"
+            android:visibility="gone" />
+    </com.google.android.flexbox.FlexboxLayout>
+</LinearLayout>

@@ -49,6 +49,11 @@ dependencies {
     implementation 'com.github.NaikSoftware:StompProtocolAndroid:1.6.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.20'
     implementation project(':commons-sdk')
+    // location capture sample (the module brings play-services-location, WorkManager, permissions and service)
+    implementation project(':commons-sdk-location')
+    // location sample: tracking history map (OpenStreetMap, no API key)
+    implementation 'org.osmdroid:osmdroid-android:6.1.20'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
     implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
@@ -58,7 +63,8 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.44'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.44'
 
-//    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'junit:junit:4.13.2'
 //    testImplementation 'org.mockito:mockito-core:4.5.1'
 //    androidTestImplementation 'androidx.test:runner:1.7.0'
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'

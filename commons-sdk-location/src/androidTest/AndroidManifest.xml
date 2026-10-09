@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The visible screen LocationServiceTest starts the capture from (the service comes from the main manifest) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="com.onevour.core.location.LocationTestActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- location sample: the capture's interval, distance and source, set by the user -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <ScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout style="@style/SampleCard">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:labelFor="@id/interval"
+                    android:text="Interval (menit): lokasi diminta tiap"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/interval"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="mis. 20"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:labelFor="@id/min_interval"
+                    android:text="Interval minimum (menit): paling cepat, bila aplikasi lain sudah dapat lokasi"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/min_interval"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="mis. 10"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:labelFor="@id/distance"
+                    android:text="Jarak minimum (meter): hanya setelah pindah sejauh"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/distance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="mis. 500"
+                    android:importantForAutofill="no"
+                    android:inputType="number"
+                    android:minHeight="48dp" />
+
+                <CheckBox
+                    android:id="@+id/gps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:minHeight="48dp"
+                    android:text="Pakai GPS (akurat, boros baterai; perlu untuk route emulator). Tidak dicentang = hemat baterai (Wi-Fi / sinyal HP)." />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/save"
+                style="@style/SamplePrimaryButton"
+                android:layout_marginTop="16dp"
+                android:text="Simpan &amp; terapkan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:accessibilityHeading="true"
+                android:text="Isi cepat"
+                android:textColor="#263238"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/preset_default"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Default library" />
+
+                    <TextView
+                        style="@style/SampleCardText"
+                        android:text="20 menit, min. 10 menit, 500 m, hemat baterai" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/preset_route"
+                style="@style/SampleCardLink">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/SampleCardTitle"
+                        android:text="Uji route emulator" />
+
+                    <TextView
+                        style="@style/SampleCardText"
+                        android:text="1 menit, min. 1 menit, 50 m, GPS" />
+                </LinearLayout>
+
+                <TextView style="@style/SampleChevron" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="#455A64"
+                android:text="Isi cepat hanya mengisi form; tekan Simpan &amp; terapkan untuk memakainya. Saat disimpan, service yang sedang jalan di-restart dengan nilai baru. Di background Android bisa memperlambat lokasi lebih dari interval yang diisi."
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,6 +1,6 @@
-# Common SDK Documentation (REST Client & NumberInput)
+# Common SDK Documentation (REST Client, NumberInput & Location)
 
-Dokumentasi penggunaan modul library `commons-sdk` untuk proyek Android, mencakup **REST Client Library** dan **NumberInput Component**.
+Dokumentasi penggunaan modul library `commons-sdk` untuk proyek Android, mencakup **REST Client Library**, **NumberInput Component** dan **Location capture**.
 
 ---
 
@@ -213,4 +213,43 @@ numPad.setListener(new NumberInput.Listener() {
 });
 
 numPad.show();
+```
+
+---
+
+## 3. Location capture (module `commons-sdk-location`, package `com.onevour.core.location`)
+
+### Overview
+Module terpisah dari `commons-sdk` dan tidak bergantung padanya: aplikasi yang tidak tracking tidak ikut membawa izin lokasi maupun `play-services-location`. Contoh pemakaiannya ada di module `app` (menu **Location Capture**).
+
+Menangkap posisi perangkat saat aplikasi memintanya — hanya itu. **Kapan** perlu tracking (absen, check-in, jam kerja) dan **apa** yang dilakukan dengan lokasinya (simpan, kirim ke server) tetap di aplikasi masing-masing.
+
+### Perilaku
+* **Service:** foreground service lokasi (`LocationService`), hemat baterai: 1 fix per 20 menit (min. 10 menit), hanya setelah pindah 500 m. Bisa diganti lewat `Config.builder(...).interval(intervalMs, minIntervalMs, minDistanceMetres)`, mis. interval pendek untuk uji rute, dan `.priority(Priority.PRIORITY_HIGH_ACCURACY)` (GPS) karena route emulator hanya mengisi GPS.
+* **Ganti saat jalan:** `LocationCapture.reconfigure(context, config)` dari layar yang tampil memakai config baru dan me-restart service.
+* **Lokasi untuk transaksi:** `LocationCapture.current(context, maxAgeMs, timeoutMs, listener)` — sekali ambil dengan GPS, fake GPS ditolak, alasan gagal berupa `NoFix` (pesan ditulis aplikasi). Tidak butuh service tracking; batalkan dengan `Pending.cancel()` saat layar ditutup.
+* **Filter (`FixFilter`):** hanya fix asli (bukan Fake GPS), akurasi ≤ 100 m, bukan sekitar 0,0, dan paling cepat 9 menit (90% interval minimum) dari fix sebelumnya yang dikirim ke aplikasi.
+* **Izin:** lokasi "saat aplikasi digunakan" saja. Service hanya dijalankan dari layar yang terlihat (`LocationCapture.sync`), tidak pernah dari background / boot.
+* **Watchdog:** `LocationWatchdogWorker` tiap 15 menit menghentikan service bila aplikasi tidak lagi memintanya. Tidak pernah menyalakan.
+
+### Cara Penggunaan
+#### A. Dependency
+```gradle
+implementation 'com.github.onevour.android-commons:commons-sdk-location:<tag>'
+```
+
+Module ini membawa `play-services-location` dan WorkManager, dan manifest-nya sudah berisi izin lokasi (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`) serta `LocationService` — aplikasi tidak perlu menulisnya lagi. Aplikasi tinggal meminta izin lokasi tepat (dan `POST_NOTIFICATIONS` di Android 13+ agar notifikasi tracking tampil) saat runtime. Waktu fix terakhir disimpan di SharedPreferences milik module (`onevour_location`).
+
+#### B. Inisialisasi (`Application#onCreate`) & pemanggilan
+```java
+LocationCapture.init(this, LocationCapture.Config.builder(
+                () -> myApp.wantsPositionNow(),          // keputusan aplikasi: login, jadwal, dsb.
+                fix -> myApp.keep(fix))                  // lokasi yang lolos filter: simpan / kirim oleh aplikasi
+        .onFix(location -> keepLastKnown(location))      // opsional; setiap fix
+        .notification("Tracking Lokasi Aktif", "Sedang mengambil lokasi perangkat...", R.drawable.ic_location)
+        .build());
+LocationCapture.startWatchdog();
+
+LocationCapture.sync(activity);    // dari layar yang terlihat: jalan bila aplikasi minta, berhenti bila tidak
+LocationCapture.stop(context);     // logout
 ```
