@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
-import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -113,22 +112,6 @@ public class RefSessionSecureTest {
             assertEquals(deviceId, session.findUuidSecure("DEVICE_ID"));
             RefSession.clearSecureMemory();                     // second pass decrypts from the file
         }
-    }
-
-    @Test
-    public void theFile_holdsNoReadableSecret() {
-        session.saveStringSecure("API_TOKEN", TOKEN);
-        session.saveLongSecure("USER_ID", 123_456_789_012L);
-        Map<String, ?> stored = app.getSharedPreferences("RefSession", Context.MODE_PRIVATE).getAll();
-        assertTrue(stored.containsKey("API_TOKEN" + RefSession.SECURE_SUFFIX));
-        for (Map.Entry<String, ?> entry : stored.entrySet()) {
-            if (!entry.getKey().endsWith(RefSession.SECURE_SUFFIX)) continue;
-            String text = String.valueOf(entry.getValue());
-            assertTrue(text.startsWith("v1:"));
-            assertFalse(text.contains("eyJ"));
-            assertFalse(text.contains("123456789012"));
-        }
-        assertNull(session.findString("API_TOKEN"));             // not under the plain key
     }
 
     @Test

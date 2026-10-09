@@ -14,7 +14,7 @@ The two modules are independent: an app that does not track only needs `commons-
 ## Contents
 
 1. [Installation](#1-installation)
-2. [Application setup](#2-application-setup)
+2. [Application setup (required)](#2-application-setup-required)
 3. [REST client](#3-rest-client)
 4. [RefSession: storing small data](#4-refsession-storing-small-data)
 5. [Gson helper and `@Expose`](#5-gson-helper-and-expose)
@@ -62,6 +62,8 @@ android {
 }
 ```
 
+Next, do the required setup in [section 2](#2-application-setup-required): `ContextHelper.init` in an `Application` class registered in the manifest.
+
 `<tag>` is the repository's git tag. JitPack builds every module per tag, so both modules always share one version. Avoid the old coordinate `com.github.onevour:android-commons:<tag>`: it pulls in **all** modules, including the location permissions.
 
 ### Requirements
@@ -85,7 +87,13 @@ Manifests are merged automatically.
 
 ---
 
-## 2. Application setup
+## 2. Application setup (required)
+
+> **Required before using anything from `commons-sdk`:** call `ContextHelper.init(this)` in your `Application` class, and register that class in the manifest. Skip it and the first use of RefSession, `BaseActivity` / `BaseFragment` or `DimensionValue.dpToPx` fails.
+
+`ContextHelper` keeps the application context for the library. It also starts loading RefSession's values from its database in the background, so they are ready by the time the first screen reads them.
+
+### 2.1 Create an `Application` class
 
 ```java
 public class MyApplication extends Application {
@@ -93,7 +101,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        ContextHelper.init(this);                                   // required before RefSession, BaseActivity, dpToPx
+        ContextHelper.init(this);                                   // FIRST, before anything else of the library
         RestLog.setLevel(BuildConfig.DEBUG ? RestLog.Level.BASIC : RestLog.Level.NONE);
 
         // only when using commons-sdk-location (section 14)
@@ -103,7 +111,32 @@ public class MyApplication extends Application {
 }
 ```
 
-Forgetting `ContextHelper.init` is the most common cause of `NullPointerException`.
+### 2.2 Register it in the manifest
+
+Without `android:name`, Android never creates `MyApplication`, so `onCreate` (and `ContextHelper.init`) never runs.
+
+```xml
+<application
+    android:name=".MyApplication"
+    android:theme="@style/AppTheme"
+    ... >
+```
+
+### 2.3 What needs it
+
+| Uses `ContextHelper` | What happens without `ContextHelper.init` |
+|---|---|
+| `RefSession` (every save / find, `BaseActivity.session`) | `IllegalStateException: call ContextHelper.init(application) first` |
+| `DimensionValue.dpToPx`, `BaseActivity.dpToPx` | `NullPointerException` |
+| REST client, NumPad, adapters, BeanCopy, Gson helper, formats, `PermissionUtils` | not needed |
+| `commons-sdk-location` | not needed: it uses the `Application` passed to `LocationCapture.init` |
+
+Notes:
+
+* Call it once, in `Application.onCreate()`. Calling it again (some activities in the sample do) is harmless.
+* It keeps the **application** context, never an activity, so nothing leaks.
+* Android always runs `Application.onCreate()` before restoring any screen, also after it killed the process in the background, so the library is ready on every start.
+* Unit tests on an emulator: call `ContextHelper.init(ApplicationProvider.getApplicationContext())` in `@Before`.
 
 ---
 
@@ -208,12 +241,20 @@ RestLog.addSensitiveHeader("X-Session");       // this header's value is masked 
 
 ## 4. RefSession: storing small data
 
-A key-value store in SharedPreferences that can also store objects (through Gson). Good for tokens, settings, the logged-in user. **Not** suitable for large, growing data (history, transactions): use a database for those.
+A key-value store that can also store objects (through its own Gson). Good for tokens, settings, the logged-in user. **Not** suitable for large, growing data (history, transactions): use the app's database for those.
+
+### 4.0 How it stores
+
+* Values live in a SQLite table (`databases/ref_session.db`, one row per key) behind an in-memory copy.
+* **Reads come from memory.** The table is loaded once in the background by `ContextHelper.init(this)`; a read in the first milliseconds waits for it.
+* **Writes change memory right away** (the next read sees them) and reach the table on a background thread; many writes, or many writes of the same key, become one transaction. The main thread does not wait for the disk.
+* Pending writes are flushed when the app goes to the background (no activity started), so Android killing the process later loses nothing. Call `session.flush()` to wait for them yourself, e.g. right after login.
+* **Upgrading is automatic:** the first time, the values of the old SharedPreferences file `RefSession.xml` move into the table and the file is emptied, so users stay logged in.
 
 ### 4.1 Types
 
 ```java
-RefSession session = new RefSession();          // needs ContextHelper.init
+RefSession session = new RefSession();          // needs ContextHelper.init in Application (section 2)
 
 session.saveString("API_TOKEN", token);
 session.saveInt("PIN_TRIES", 3);
@@ -289,7 +330,8 @@ session.clearSecure();                                        // logout: every s
 ### 4.3 Pitfalls
 
 * Keys are upper-cased, so `"token"` and `"TOKEN"` are the same key.
-* Writes use `commit()`, i.e. disk I/O on the calling thread. Avoid saving repeatedly in a loop on the main thread.
+* A write is in memory at once and on disk within milliseconds. For a value that must survive an immediate crash (a token right after login), call `session.flush()`.
+* Values are per process: a service in another process (`android:process`) sees its own copy.
 * Stored objects must mark their fields with `@Expose` (see section 5).
 * `save(user)` / `find(User.class)` use the class name as the key: two classes with the same simple name collide, and R8 renames classes in release builds. Prefer `save("USER", user)` / `find("USER", User.class)`.
 * Saving a `null` value throws a `NullPointerException`; use `delete`.
@@ -316,7 +358,7 @@ DeeplinkResult result = gson.fromJson(json, DeeplinkResult.class);
 
 ## 6. BeanCopy: copying between objects
 
-Copies fields with the same name (case-insensitive) and the **same type**.
+Copies fields with the same name (case-insensitive) and the **same type**, superclass fields included.
 
 ```java
 Person person = BeanCopy.value(employee, Person.class);              // new object
@@ -325,12 +367,14 @@ BeanCopy.copyValue(employee, existingPerson, "id");                  // fill an 
 Person deep = BeanCopy.gson(employee, Person.class);                 // deep copy through Gson
 ```
 
+Which field goes where is worked out once per source class, target class and ignore list, then reused: repeated copies are fast and safe from several threads.
+
 Pitfalls:
 
-* Fields with a different type are silently skipped. In the sample, `id` String to `int` is not copied.
-* The target class needs a public no-argument constructor.
-* The copy is shallow (except `gson`).
-* The mapping is cached per class pair, using the `ignore` list of the **first** call. Keep the `ignore` list consistent for a given class pair.
+* Fields with a different type are silently skipped, `int` vs `Integer` included. In the sample, `id` String to `int` is not copied.
+* `transient` and `static` fields are never copied.
+* The target class needs a public no-argument constructor for `value` / `values`.
+* The copy is shallow: lists and nested objects are shared. Use `gson` for a deep copy (it keeps `Date` milliseconds and `NaN`).
 
 ---
 
@@ -1092,11 +1136,11 @@ A `maxAgeMs` of 0 requires a fresh location. Registering a customer, for example
 
 ## 15. Pitfalls at a glance
 
-1. Call `ContextHelper.init(this)` in `Application.onCreate()`.
+1. Call `ContextHelper.init(this)` first in `Application.onCreate()`, and register the class with `android:name` in the manifest.
 2. Every JSON model needs `@Expose` (REST, RefSession, adapter `updateItem`).
 3. REST listeners: anonymous classes with a concrete type; the server must send `Content-Type: application/json`.
 4. Add gson, recyclerview, material and eventbus to the app yourself.
 5. Call `adapter.setHolderListener(this)` yourself; holders are `public` with a constructor taking exactly their binding; dynamic holder types are > 0, unique, and compared by id in the diff.
 6. `NumPad.destroy()` in `onDestroy`, and `setUseBottomSheet` before `setup`.
-7. RefSession is for small data only; history and transactions go to a database.
+7. RefSession is for small data only (it is all kept in memory); history and transactions go to the app's database.
 8. Location: `sync` only from a visible screen, and `stop` on logout.

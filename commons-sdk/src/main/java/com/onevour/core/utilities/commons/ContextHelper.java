@@ -10,6 +10,7 @@ public class ContextHelper {
 
     public static void init(Application application) {
         context.set(application);
+        RefSessionStore.preload(application);          // RefSession values load in the background
     }
 
     public static Application getApplication() {

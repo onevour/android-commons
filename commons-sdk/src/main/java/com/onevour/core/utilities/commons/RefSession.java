@@ -1,7 +1,5 @@
 package com.onevour.core.utilities.commons;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,7 +22,9 @@ import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -50,16 +50,25 @@ public class RefSession {
             .registerTypeAdapter(Date.class, new DateAdapter())
             .create();
 
+    /** @deprecated values are no longer in a SharedPreferences file of this name (see RefSessionStore) */
+    @Deprecated
     protected final String EDITOR_DEFAULT = RefSession.class.getSimpleName();
 
 
-    private SharedPreferences getSharedPreferences(String Key) {
-        return ContextHelper.getApplication().getSharedPreferences(Key, Context.MODE_PRIVATE);
+    /** The values: a SQLite table behind an in-memory copy (RefSessionStore), no longer SharedPreferences. */
+    private static RefSessionStore store() {
+        return RefSessionStore.get();
     }
 
-    private SharedPreferences.Editor editor(String Key) {
-        SharedPreferences sharedPreferences = ContextHelper.getApplication().getSharedPreferences(Key, Context.MODE_PRIVATE);
-        return sharedPreferences.edit();
+    /**
+     * Waits until every value saved so far is written to the database, e.g. right after login,
+     * before something may end the process. Not needed otherwise: writes reach the database within
+     * milliseconds, and before the app goes to the background.
+     *
+     * @return true when everything is written
+     */
+    public boolean flush() {
+        return store().flush();
     }
 
     /**
@@ -71,23 +80,18 @@ public class RefSession {
     }
 
     public <T> T find(String key, Class<T> cls) {
-        String valueString = getSharedPreferences(EDITOR_DEFAULT).getString(key.toUpperCase(), null);
-        if (null == valueString) return null;
-        return GSON.fromJson(valueString, cls);
+        return find(key, (Type) cls);
     }
 
     public <T> List<T> findCollection(String key, Class<T> cls) {
-        String valueString = getSharedPreferences(EDITOR_DEFAULT).getString(key.toUpperCase(), null);
-        if (null == valueString) return null;
-        String value = findString(key);
-        if (ValueOf.isEmpty(value)) return null;
-        return GSON.fromJson(valueString, TypeToken.getParameterized(ArrayList.class, cls).getType());
+        if (ValueOf.isEmpty(findText(key))) return null;
+        return find(key, TypeToken.getParameterized(ArrayList.class, cls).getType());
     }
 
 
     /** Whether a value is stored under this key (0 / false / "" included). */
     public boolean contains(String key) {
-        return getSharedPreferences(EDITOR_DEFAULT).contains(key.toUpperCase());
+        return store().contains(key.trim().toUpperCase());
     }
 
     /**
@@ -173,13 +177,7 @@ public class RefSession {
 
     /** The stored value as it is (Integer, Long, Float, Boolean or String), or null when missing. */
     private Object raw(String key) {
-        SharedPreferences preferences = getSharedPreferences(EDITOR_DEFAULT);
-        String upperKey = key.toUpperCase();
-        try {
-            return preferences.getString(upperKey, null);             // most values are text
-        } catch (ClassCastException e) {
-            return preferences.getAll().get(upperKey);
-        }
+        return store().get(key.trim().toUpperCase());
     }
 
     private BigDecimal number(String key) {
@@ -205,10 +203,11 @@ public class RefSession {
      * create or replace multiple
      */
     public void save(Object... values) {
+        Map<String, Object> changes = new LinkedHashMap<>();
         for (Object value : values) {
-            String key = value.getClass().getSimpleName().toUpperCase();
-            save(key, value, false);
+            changes.put(value.getClass().getSimpleName().toUpperCase(), GSON.toJson(requireValue(value)));
         }
+        store().put(changes);                                          // one write for all of them
     }
 
     /**
@@ -256,29 +255,20 @@ public class RefSession {
             throw new NullPointerException("cannot store null object, key and empty key");
         }
         String key = keyRef.trim().toUpperCase();
-        SharedPreferences.Editor editor = editor(EDITOR_DEFAULT);
+        Object stored;
         if (isNative) {
-            if (value instanceof Integer) {
-                editor.putInt(key, (int) value);
-            } else if (value instanceof Float) {
-                editor.putFloat(key, (float) value);
-            } else if (value instanceof Long) {
-                editor.putLong(key, (long) value);
+            if (value instanceof Integer || value instanceof Float || value instanceof Long
+                    || value instanceof Boolean || value instanceof String) {
+                stored = value;
             } else if (value instanceof Double) {
-                editor.putString(key, String.valueOf(value));
-            } else if (value instanceof Boolean) {
-                editor.putBoolean(key, (boolean) value);
-            } else if (value instanceof String) {
-                editor.putString(key, (String) value);
-            } else
-                throw new IllegalArgumentException("Only int, float, boolean, string acceptable when native set true");
+                stored = String.valueOf(value);                     // exact as text, NaN included
+            } else {
+                throw new IllegalArgumentException("Only int, long, float, double, boolean, string acceptable when native set true");
+            }
         } else {
-            String valueString = GSON.toJson(value);
-            editor.putString(key, valueString);
+            stored = GSON.toJson(value);
         }
-        if (!editor.commit()) {
-            throw new IllegalStateException("cannot commit save keys ".concat(key));
-        }
+        store().put(Collections.singletonMap(key, stored));
     }
 
     /*
@@ -308,15 +298,11 @@ public class RefSession {
     }
 
     public Date findDate(String key) {
-        SharedPreferences preferences = getSharedPreferences(EDITOR_DEFAULT);
-        String upperKey = key.toUpperCase();
-        if (!preferences.contains(upperKey)) return null;
-        try {
-            return new Date(preferences.getLong(upperKey, 0L));
-        } catch (ClassCastException e) {
-            Log.w(TAG, "not a date: ".concat(key));
-            return null;
-        }
+        Object value = raw(key);
+        if (Objects.isNull(value)) return null;
+        if (value instanceof Long) return new Date((Long) value);
+        Log.w(TAG, "not a date: ".concat(key));
+        return null;
     }
 
     /** A set of strings, in the order they were added. */
@@ -415,11 +401,8 @@ public class RefSession {
 
     /** A value saved as text, or null when missing or saved as another type. */
     private String findText(String key) {
-        try {
-            return getSharedPreferences(EDITOR_DEFAULT).getString(key.toUpperCase(), null);
-        } catch (ClassCastException e) {
-            return null;
-        }
+        Object value = raw(key);
+        return value instanceof String ? (String) value : null;
     }
 
     private static <T> T requireValue(T value) {
@@ -638,12 +621,11 @@ public class RefSession {
     /** Every secret, e.g. on logout; the other values stay. */
     public void clearSecure() {
         SECURE_CACHE.clear();
-        SharedPreferences preferences = getSharedPreferences(EDITOR_DEFAULT);
-        SharedPreferences.Editor editor = preferences.edit();
-        for (String key : preferences.getAll().keySet()) {
-            if (key.endsWith(SECURE_SUFFIX)) editor.remove(key);
+        List<String> secrets = new ArrayList<>();
+        for (String key : store().keys()) {
+            if (key.endsWith(SECURE_SUFFIX)) secrets.add(key);
         }
-        if (!editor.commit()) throw new IllegalStateException("cannot clear secure values");
+        store().remove(secrets);
     }
 
     private static String secureKey(String key) {
@@ -677,7 +659,7 @@ public class RefSession {
                 plain = RefSessionCipher.decrypt(sealed);
             } catch (GeneralSecurityException | IllegalArgumentException e) {
                 Log.w(TAG, "cannot decrypt ".concat(storedKey).concat(", removed: ").concat(String.valueOf(e.getMessage())));
-                getSharedPreferences(EDITOR_DEFAULT).edit().remove(storedKey).apply();
+                store().remove(Collections.singletonList(storedKey));
                 return null;
             }
             SECURE_CACHE.put(storedKey, plain);
@@ -708,25 +690,22 @@ public class RefSession {
     }
 
     public void delete(Object... objs) {
+        List<String> keys = new ArrayList<>();
         for (Object o : objs) {
-            delete(o.getClass().getSimpleName().toUpperCase());
+            keys.add(o.getClass().getSimpleName().toUpperCase());
         }
+        store().remove(keys);
     }
 
     public void delete(String... keys) {
-        SharedPreferences.Editor editor = editor(EDITOR_DEFAULT);
-        StringBuilder sb = new StringBuilder("|");
+        List<String> upperKeys = new ArrayList<>();
         for (String key : keys) {
             if (null == key || key.trim().isEmpty()) {
                 throw new NullPointerException("cannot remove empty key");
             }
-            sb.append(key).append("|");
-            editor.remove(key.toUpperCase());
-            Log.d(TAG, "remove ".concat(key));
+            upperKeys.add(key.trim().toUpperCase());
         }
-        if (!editor.commit()) {
-            throw new IllegalStateException("cannot commit remove keys ".concat(sb.toString()));
-        }
+        store().remove(upperKeys);
     }
 
 
