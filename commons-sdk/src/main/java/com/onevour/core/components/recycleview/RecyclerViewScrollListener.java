@@ -3,7 +3,6 @@ package com.onevour.core.components.recycleview;
 // Created by Zuliadin on 2019-12-24.
 //
 
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,8 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.security.InvalidParameterException;
 
 public class RecyclerViewScrollListener extends RecyclerView.OnScrollListener {
-
-    private static final String TAG = "RV-SCROLL";
 
     private PaginationListener listener;
 
@@ -57,19 +54,11 @@ public class RecyclerViewScrollListener extends RecyclerView.OnScrollListener {
                         adapter.showLoader();
                     }
                 });
-                Log.d(TAG, "show loader");
             }
             if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0 && totalItemCount >= size) {
-                Log.d(TAG, "load more item");
                 listener.loadMoreItems(adapter.getItem(totalItemCount - 1));
             }
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(visibleItemCount).append("|");
-        sb.append(totalItemCount).append("|");
-        sb.append(firstVisibleItemPosition).append("|");
-        sb.append(adapter.isLoader());
-        Log.d(TAG, sb.toString());
     }
 
     public interface PaginationListener<E> {

@@ -123,7 +123,6 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
 
     @Override
     public int getItemViewType(int position) {
-        Log.d(TAG, "item view type: ".concat(String.valueOf(position)));
         AdapterModel value = updater.shown().get(position);
         if (ValueOf.nonNull(value)) {
             return value.getType();
@@ -211,7 +210,6 @@ public abstract class AdapterGeneric<E extends AdapterModel> extends RecyclerVie
         if (overrides[4]) holder.onBindViewHolder(updater.shown(), position, size);
         if (overrides[5])
             holder.onBindViewHolder(o, position, 0 == position && !isLoader, position == getItemCount() - 1 && !isLoader);
-        Log.d(TAG, "bind position ".concat(String.valueOf(position)));
     }
 
     @Override
