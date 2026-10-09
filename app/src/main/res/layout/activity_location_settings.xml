@@ -95,19 +95,10 @@
                 android:layout_marginTop="16dp"
                 android:text="Simpan &amp; terapkan" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:accessibilityHeading="true"
-                android:text="Isi cepat"
-                android:textColor="#263238"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
             <LinearLayout
-                android:id="@+id/preset_default"
-                style="@style/SampleCardLink">
+                android:id="@+id/reference"
+                style="@style/SampleCardLink"
+                android:layout_marginTop="24dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -117,33 +108,11 @@
 
                     <TextView
                         style="@style/SampleCardTitle"
-                        android:text="Default library" />
+                        android:text="Referensi konfigurasi" />
 
                     <TextView
                         style="@style/SampleCardText"
-                        android:text="20 menit, min. 10 menit, 500 m, hemat baterai" />
-                </LinearLayout>
-
-                <TextView style="@style/SampleChevron" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/preset_route"
-                style="@style/SampleCardLink">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/SampleCardTitle"
-                        android:text="Uji route emulator" />
-
-                    <TextView
-                        style="@style/SampleCardText"
-                        android:text="1 menit, min. 1 menit, 50 m, GPS" />
+                        android:text="Berapa titik per jam untuk tiap interval dan jarak; ketuk satu untuk mengisi form" />
                 </LinearLayout>
 
                 <TextView style="@style/SampleChevron" />
@@ -154,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:textColor="#455A64"
-                android:text="Isi cepat hanya mengisi form; tekan Simpan &amp; terapkan untuk memakainya. Saat disimpan, service yang sedang jalan di-restart dengan nilai baru. Di background Android bisa memperlambat lokasi lebih dari interval yang diisi."
+                android:text="Referensi hanya mengisi form; tekan Simpan &amp; terapkan untuk memakainya. Saat disimpan, service yang sedang jalan di-restart dengan nilai baru. Di background Android bisa memperlambat lokasi lebih dari interval yang diisi."
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </ScrollView>

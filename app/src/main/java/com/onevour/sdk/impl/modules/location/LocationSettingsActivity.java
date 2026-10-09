@@ -26,8 +26,7 @@ public class LocationSettingsActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         SampleScreen.setUp(this, binding.toolbar, binding.content, "Jarak & waktu capture");
         if (Objects.isNull(savedInstanceState)) fill(LocationSample.settings());
-        binding.presetDefault.setOnClickListener(v -> fill(LocationSample.Settings.defaults()));
-        binding.presetRoute.setOnClickListener(v -> fill(new LocationSample.Settings(1, 1, 50f, true)));
+        binding.reference.setOnClickListener(v -> ConfigReference.show(this, this::fill));
         binding.save.setOnClickListener(v -> save());
     }
 
