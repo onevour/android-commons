@@ -488,9 +488,11 @@ public class NumPadInputView implements View.OnClickListener {
         titleLeft.setText(title);
     }
 
+    /** The right title (the max); an empty one is gone and the left title takes the whole width. */
     public void setTitleRight(String title) {
         titleContent.setVisibility(View.VISIBLE);
-        titleRight.setVisibility(View.VISIBLE);
+        boolean empty = Objects.isNull(title) || title.trim().isEmpty();
+        titleRight.setVisibility(empty ? View.GONE : View.VISIBLE);
         titleRight.setText(title);
     }
 
@@ -499,26 +501,26 @@ public class NumPadInputView implements View.OnClickListener {
         return max < Double.MAX_VALUE && !Double.isInfinite(max);
     }
 
+    /** The max on the right of the title; without a max (Double.MAX_VALUE) none, the title is full width. */
     public void showMaxValue() {
         titleContent.setVisibility(View.VISIBLE);
         titleLeft.setVisibility(View.VISIBLE);
-        titleRight.setVisibility(View.VISIBLE);
-        if (Objects.isNull(numberFormat)) {
-            setTitleRight(String.valueOf(Double.valueOf(max).intValue()));
-        } else setTitleRight(numberFormat.format(max));
+        setTitleRight(maxText());
     }
 
     public void updateMinMax(double min, double max) {
         titleContent.setVisibility(View.VISIBLE);
         titleLeft.setVisibility(View.VISIBLE);
-        titleRight.setVisibility(View.VISIBLE);
         this.min = min;
         this.max = max;
-        if (ValueOf.isNull(numberFormat)) {
-            titleRight.setText(String.valueOf((int) max));
-        } else {
-            titleRight.setText(numberFormat.format(max));
-        }
+        setTitleRight(maxText());
+    }
+
+    /** The max as shown, empty when the pad has none. */
+    private String maxText() {
+        if (!hasMax()) return "";
+        if (Objects.isNull(numberFormat)) return String.valueOf(Double.valueOf(max).intValue());
+        return numberFormat.format(max);
     }
 
     public interface AlertListener {

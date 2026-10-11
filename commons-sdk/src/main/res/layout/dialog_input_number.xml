@@ -35,13 +35,15 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
 
+        <!-- the max, when the pad has one; gone otherwise, so the title takes the whole width -->
         <TextView
             android:id="@+id/title_right"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginStart="12dp"
             android:gravity="end"
             android:text=""
+            android:visibility="gone"
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="16sp" />
 
