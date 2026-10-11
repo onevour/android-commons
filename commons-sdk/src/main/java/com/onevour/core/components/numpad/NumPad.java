@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.Executors;
 
 /**
@@ -39,12 +40,19 @@ public class NumPad implements View.OnTouchListener {
 
     private final NumPadInputView alert = new NumPadInputView();
 
+    /**
+     * The pad was just opened on the field's value: the first digit typed replaces that value (then the
+     * digits append), as a calculator does; deleting first edits the value instead.
+     */
+    private final AtomicBoolean fresh = new AtomicBoolean();
+
     private final NumPadInputView.AlertListener viewListener = new NumPadInputView.AlertListener() {
 
         @Override
         public void inputValue(char value) throws ParseException {
             executor.execute(() -> {
                 try {
+                    if (fresh.getAndSet(false)) adapter.setValue("");
                     adapter.append(String.valueOf(value));
                     handler.post(() -> alert.setResult(adapter.getValueString(), adapter.isAfterPoint()));
                 } catch (ParseException e) {
@@ -60,6 +68,7 @@ public class NumPad implements View.OnTouchListener {
 
         @Override
         public void submitToMaxValue() {
+            fresh.set(false);
             try {
                 adapter.setValueToMax();
                 adapter.validateInit();
@@ -71,6 +80,7 @@ public class NumPad implements View.OnTouchListener {
 
         @Override
         public void delete() throws ParseException {
+            fresh.set(false);
             executor.execute(() -> {
                 adapter.delete();
                 handler.post(() -> alert.setResult(adapter.getValueString(), adapter.isAfterPoint()));
@@ -243,6 +253,7 @@ public class NumPad implements View.OnTouchListener {
                     String valueStr = editText.getText().toString();
                     adapter.setValue(valueStr);
                     adapter.validateInit();
+                    fresh.set(true);
                     handler.post(() -> alert.show(adapter.getValueString(), adapter.isAfterPoint()));
                 } catch (ParseException e) {
                     handler.post(() -> alert.error(e.getMessage()));
