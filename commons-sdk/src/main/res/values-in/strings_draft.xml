@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Draft form (Indonesia) -->
+<resources>
+    <string name="commons_draft_restore_title">Lanjutkan draft?</string>
+    <string name="commons_draft_restore_message">Form ini punya isian yang belum disimpan (draft pukul %1$s).</string>
+    <string name="commons_draft_continue">Lanjutkan</string>
+    <string name="commons_draft_discard">Buang</string>
+    <string name="commons_draft_leave_title">Belum disimpan</string>
+    <string name="commons_draft_leave_message">Isian kamu tersimpan sebagai draft. Lanjutkan nanti, atau buang?</string>
+    <string name="commons_draft_later">Lanjutkan nanti</string>
+    <string name="commons_draft_stay">Tetap di sini</string>
+</resources>

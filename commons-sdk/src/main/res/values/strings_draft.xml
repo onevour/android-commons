@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Form drafts (English, the default; Indonesian: values-in). An app may override any of them. -->
+<resources>
+    <string name="commons_draft_restore_title">Continue the draft?</string>
+    <string name="commons_draft_restore_message">This form has input that was not saved yet (draft of %1$s).</string>
+    <string name="commons_draft_continue">Continue</string>
+    <string name="commons_draft_discard">Discard</string>
+    <string name="commons_draft_leave_title">Not saved yet</string>
+    <string name="commons_draft_leave_message">Your input is kept as a draft. Continue later, or discard it?</string>
+    <string name="commons_draft_later">Continue later</string>
+    <string name="commons_draft_stay">Stay</string>
+</resources>

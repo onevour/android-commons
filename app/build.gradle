@@ -6,7 +6,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId "com.onevour.sdk.impl"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         versionCode 3
         versionName "0.0.1"

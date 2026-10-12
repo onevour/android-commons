@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- EvoForm (English, the default; Indonesian: values-in). An app may override any of them. -->
+<resources>
+    <string name="commons_form_required">Required.</string>
+    <string name="commons_form_number">Enter a number.</string>
+    <string name="commons_form_min">At least %1$s.</string>
+    <string name="commons_form_max">At most %1$s.</string>
+    <string name="commons_form_min_length">At least %1$d characters.</string>
+    <string name="commons_form_max_length">At most %1$d characters.</string>
+    <string name="commons_form_email">Enter a valid email address.</string>
+    <string name="commons_form_leave_title">Leave without saving?</string>
+    <string name="commons_form_leave_message">Your changes will be lost.</string>
+    <string name="commons_form_leave">Leave</string>
+</resources>

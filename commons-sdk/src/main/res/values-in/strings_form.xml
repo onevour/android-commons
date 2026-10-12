@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- EvoForm (Indonesia) -->
+<resources>
+    <string name="commons_form_required">Wajib diisi.</string>
+    <string name="commons_form_number">Isi dengan angka.</string>
+    <string name="commons_form_min">Minimal %1$s.</string>
+    <string name="commons_form_max">Maksimal %1$s.</string>
+    <string name="commons_form_min_length">Minimal %1$d karakter.</string>
+    <string name="commons_form_max_length">Maksimal %1$d karakter.</string>
+    <string name="commons_form_email">Isi alamat email yang valid.</string>
+    <string name="commons_form_leave_title">Keluar tanpa menyimpan?</string>
+    <string name="commons_form_leave_message">Perubahan kamu akan hilang.</string>
+    <string name="commons_form_leave">Keluar</string>
+</resources>

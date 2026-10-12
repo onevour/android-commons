@@ -1,6 +1,6 @@
-# Common SDK Documentation (REST Client, NumberInput & Location)
+# Common SDK Documentation (REST Client, NumberInput, Location, Form Draft & EvoForm)
 
-Dokumentasi penggunaan modul library `commons-sdk` untuk proyek Android, mencakup **REST Client Library**, **NumberInput Component** dan **Location capture**.
+Dokumentasi penggunaan modul library `commons-sdk` untuk proyek Android, mencakup **REST Client Library**, **NumberInput Component**, **Location capture**, **Form Draft** dan **EvoForm**.
 
 ---
 
@@ -253,3 +253,225 @@ LocationCapture.startWatchdog();
 LocationCapture.sync(activity);    // dari layar yang terlihat: jalan bila aplikasi minta, berhenti bila tidak
 LocationCapture.stop(context);     // logout
 ```
+
+---
+
+## 4. Form Draft (`com.onevour.core.draft`, bagian dari `commons-sdk`)
+
+### Overview
+Isian form disimpan otomatis sebagai **draft** selama user mengisi, jadi baterai habis, aplikasi di-kill atau HP restart tidak membuat user mengetik ulang. Saat form dibuka lagi, draft ditawarkan kembali. Seperti `RefSession`, library punya **database sendiri** (`commons_drafts.db`), jadi aplikasi **tidak perlu migrasi** dan **tidak perlu init** selain `ContextHelper.init(application)` yang sudah ada.
+
+> Cara termudah memakai draft: lewat **EvoForm** (bagian 5), yang membungkus form, validasi dan draft sekaligus. Bagian ini menjelaskan mesin draft-nya, untuk form yang tidak memakai EvoForm.
+
+Library menyediakan mekanismenya. Aplikasi hanya **mengimplementasikan** sesuai kebutuhan:
+- `FormDraft.Host<T>`: cara form mengambil dan mengisi kembali isiannya (atau pakai `forModel` / `forLayout`).
+- `AttachmentHandler` (opsional): kalau form punya lampiran (foto) yang ikut berstatus draft.
+
+### Perilaku
+- **Aturan form:** isian adalah draft sampai form **disimpan** (`saved()` → draft dihapus).
+- **Simpan otomatis:** setiap perubahan ditulis ±0,7 detik setelahnya (ketikan beruntun = 1x tulis), dan langsung saat aplikasi ke background (`onPause`).
+- **Saat form dibuka** (`offerRestore()`): kalau ada draft, muncul dialog *"Lanjutkan draft?"*. Pilih **Lanjutkan** untuk mengisi kembali, atau **Buang** untuk menghapus draft dan lampirannya.
+- **Back tanpa simpan** (`leave()`): dialog *Lanjutkan nanti* (draft disimpan), *Buang* (draft dan lampiran dihapus), atau *Tetap di sini*. Kalau tidak ada perubahan, langsung keluar.
+- **"Ada perubahan"** = state form berbeda dari saat selesai dimuat (dibandingkan sebagai JSON). Nilai yang diisi form sendiri (spinner awal, hasil hitungan) **bukan** perubahan.
+- **Teks dialog** tersedia EN (default) dan ID (`values-in`), dengan nama `commons_draft_*`. Aplikasi boleh menimpanya.
+- **Thread:** semua akses DB berjalan di thread latar milik library. Dialog dan callback berjalan di main thread.
+
+### Cara Penggunaan
+
+#### A. Syarat
+Cukup `ContextHelper.init(this)` di `Application#onCreate` (sudah dipakai oleh `RefSession`). Database draft dibuka otomatis saat pertama dibutuhkan.
+
+#### B. Konfigurasi opsional (`Application#onCreate`)
+Hanya kalau form punya lampiran draft (foto) atau ingin mencatat siapa yang menulis draft:
+```java
+Drafts.configure(new MyPhotoAttachments(), () -> session.currentUserId());
+```
+
+#### C. Form rumit: `forModel` (disarankan)
+Isian dipegang ViewModel (stepper, list, foto, pilihan id/tanggal). Yang disimpan adalah model, bukan view, jadi tahan terhadap perubahan layout.
+```java
+public class SosActivity extends AppCompatActivity {
+
+    private FormDraft<SosState> draft;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ...
+        draft = FormDraft.forModel(this, "SOS", visitId + ":" + period, customerId, SosState.class,
+                        viewModel::formState,          // ambil isian (Gson → JSON)
+                        viewModel::restore)            // isi kembali draft; ViewModel menggambar ulang layar
+                .photos(SosState::photoIds);           // id lampiran draft, ikut dibuang saat "Buang"
+        viewModel.getLoaded().observe(this, loaded -> draft.offerRestore());   // setelah data tampil
+        viewModel.onChange(draft::changed);            // setiap model berubah
+        binding.btnSave.setOnClickListener(v -> save());
+    }
+
+    private void save() {
+        if (!viewModel.validate()) return;
+        viewModel.save(() -> {
+            Drafts.run(() -> Drafts.commitAttachments(viewModel.photoIds()));   // lampiran draft → final
+            draft.saved();                                                      // draft selesai, dihapus
+            finish();
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        draft.leave(this::finish);
+    }
+}
+
+// state yang disimpan: field sederhana saja (primitive, String, Long id, List), tanggal sebagai millis
+public class SosState {
+    public List<Entry> entries = new ArrayList<>();
+    public static Collection<Long> photoIds(SosState s) { ... }
+}
+```
+
+#### D. Form satu layar sederhana: `forLayout`
+Semua input yang punya `android:id` di bawah root (EditText, CheckBox/Switch, RadioGroup, Spinner) otomatis jadi isian, dengan nama id sebagai kunci.
+```java
+draft = FormDraft.forLayout(this, "REASON", visitId, customerId, binding.getRoot());
+draft.offerRestore();                       // setelah data tampil
+...
+draft.saved();                              // setelah simpan
+@Override public void onBackPressed() { draft.leave(this::finish); }
+```
+- Hanya TextWatcher yang dipasang otomatis (bisa ditumpuk). Listener checkbox, radio dan spinner milik form **tidak ditimpa**. Perubahannya ikut tertulis pada penulisan berikutnya (ketik teks, onPause, back), atau panggil `draft.changed()` di listener form untuk menulis langsung.
+- Untuk mengecualikan view (misalnya total hasil hitungan), beri `android:tag="draft:ignore"`.
+- Kelemahannya: bergantung pada `android:id`, dan tidak cocok untuk form multi-langkah. Gunakan `forModel` untuk form seperti itu.
+
+#### E. Implementasi `FormDraft.Host` langsung
+Kalau Activity sendiri yang mengambil dan mengisi isiannya:
+```java
+public class ReasonActivity extends AppCompatActivity implements FormDraft.Host<ReasonState> {
+
+    draft = new FormDraft<>(this, "REASON", key, customerId, ReasonState.class, this);
+
+    @Override public ReasonState capture() { return new ReasonState(selectedReasonId(), noteText()); }
+    @Override public void restore(ReasonState state) { checkReason(state.reasonId); setNote(state.description); }
+    @Override public Collection<Long> photoIds(ReasonState state) { return Collections.emptyList(); }   // opsional
+    @Override public void onDiscarded() { reloadSavedData(); }                                         // opsional
+}
+```
+
+#### F. Lampiran draft (foto): implementasi `AttachmentHandler`
+Library tidak tahu tabel foto aplikasi. Aplikasi menandai foto yang diambil di form sebagai draft (misalnya kolom status), lalu library memanggil handler saat simpan atau buang:
+```java
+public class MyPhotoAttachments implements AttachmentHandler {
+    @Override public void commit(Collection<Long> ids) { photoDao.markFinal(ids); }       // simpan → final, ikut upload
+    @Override public void discard(Collection<Long> ids) { photoDao.deleteDrafts(ids); }   // buang → hapus baris + file
+}
+// saat simpan:  Drafts.commitAttachments(ids);   saat buang otomatis lewat FormDraft (ids dari Host.photoIds / photos())
+```
+
+#### G. API `Drafts` (dipanggil di thread latar, misalnya `Drafts.run(...)`)
+| Method | Kegunaan |
+|---|---|
+| `formsOf(ownerId)` | form mana yang punya draft untuk owner itu (misalnya chip "Draft" di menu kunjungan) |
+| `count()` / `count(forms)` | jumlah draft, misalnya untuk menahan logout selama masih ada draft |
+| `deleteByOwner(ownerId)` | buang semua draft milik owner (misalnya check-out tanpa menyimpan) |
+| `retainForms(forms)` | hapus draft dari form yang sudah tidak memakai draft (panggil saat start) |
+| `deleteOlderThan(date)` | bersihkan draft lama (misalnya periode sebelumnya) |
+| `deleteAll()` | hapus semua draft (misalnya saat logout) |
+| `commitAttachments(ids)` / `discardAttachments(ids)` | teruskan ke `AttachmentHandler` aplikasi |
+| `save` / `load` / `delete` | akses langsung, jarang perlu karena `FormDraft` sudah memakainya |
+
+#### H. Tips
+- **Key** harus unik per instance form, misalnya `visitId + ":" + itemId` (item baru: `"new"` atau id sementara). **ownerId** = pemilik draft untuk pengelompokan, misalnya customer/kunjungan.
+- **Nama form** sebaiknya konstanta atau enum di aplikasi (misalnya `enum AppForms { SOS, PROMO, ... }` → `AppForms.SOS.name()`). Panggil `Drafts.retainForms(...)` saat start supaya draft form yang dihentikan ikut dibersihkan.
+- **State class** harus bisa di-Gson: tanpa referensi View/Context/entity Room, tanggal sebagai `long`.
+- **Field hitungan** jangan disimpan. Hitung ulang dari model setelah `restore`.
+- **Panggil `offerRestore()` setelah data form tampil**, karena di situ "keadaan awal" diambil.
+
+#### I. Unit test (JVM)
+```java
+Drafts.useStore(new MemoryDraftStore());          // ganti DB dengan store di memori (implementasi DraftStore)
+Drafts.configure(fakeAttachments, () -> "U01");
+Drafts.save("REASON", "k1", "C1", state);
+Drafts.Draft<ReasonState> back = Drafts.load("REASON", "k1", ReasonState.class);
+```
+
+---
+
+## 5. EvoForm (`com.onevour.core.form`, bagian dari `commons-sdk`)
+
+### Overview
+Pembungkus form dengan konsep seperti `useForm` dari react-hook-form. Field didaftarkan dengan nama (view atau nilai biasa) beserta aturannya. Nilai form keluar sebagai satu objek bertipe, ada status dirty, error tampil di field, submit memvalidasi dulu, dan **draft sudah termasuk** (memakai Form Draft di bagian 4). Aplikasi cukup mendaftarkan field dan menangani simpan.
+
+| react-hook-form | EvoForm |
+|---|---|
+| `useForm({ defaultValues })` | `EvoForm.with(activity, Values.class)...build()` + `reset(defaults)` |
+| `register("name", rules)` | `register(view, "name", Rules...)` / `register("name", getter, setter, Rules...)` |
+| `handleSubmit(onValid)` | `handleSubmit(values -> ...)` (OnClickListener) |
+| `watch("name")` | `watch("name", value -> ...)` |
+| `setValue` / `getValues` | `setValue("name", v)` / `getValues()` (bertipe `T`) |
+| `formState.errors` / `isDirty` | `errors()` / `isDirty()` |
+| `setError` / `clearErrors` / `trigger` | `setError` / `clearErrors` / `trigger()` |
+| `reset(values)` | `reset(values)`: nilai awal, lalu menawarkan draft |
+| *(tidak ada)* | **draft otomatis**: `.draft(form, key, owner)` |
+
+### Cara Penggunaan
+
+#### A. Cara singkat (disarankan): class nilai + anotasi, tanpa `register`
+Field class nilai otomatis terikat ke view yang id-nya sama dengan nama field (`normalPrice` mencari `@+id/normalPrice` atau `@+id/normal_price`; bisa juga `@Bind("cio_normal_price")`). Aturan validasi ditulis sebagai anotasi. Field tanpa view (id produk, daftar foto) disimpan oleh form sendiri.
+```java
+import com.onevour.core.form.annotation.*;
+
+public class PromoValues {
+    @Required @Numeric @Min(1)   public Double normalPrice;    // @+id/normal_price
+    @Required @Numeric @Min(1)   public Double promoPrice;     // @+id/promo_price
+    @Required                    public String display;        // RadioGroup @+id/display, nilai = android:tag tombol
+    @MaxLength(255)              public String description;    // @+id/description
+    @Required                    public Long productId;        // tanpa view: dipegang form
+    @Attachment                  public List<Long> photoIds;   // lampiran draft (foto)
+    @Ignore                      public Double savings;        // bukan field form
+}
+
+// di Activity: inilah seluruh kode form-nya
+EvoForm<PromoValues> form = EvoForm.bind(this, binding.getRoot(), PromoValues.class)
+        .draft("PROMO", visitId + ":" + promoId, customerId)     // draft otomatis (opsional)
+        .build();
+
+viewModel.getLoaded().observe(this, form::reset);                       // nilai awal + "Lanjutkan draft?"
+binding.btnSave.setOnClickListener(form.handleSubmit(values ->
+        viewModel.save(values, () -> { form.saved(); finish(); })));
+@Override public void onBackPressed() { form.leave(this::finish); }
+
+// field tanpa view diisi lewat setValue
+productPicker.onPicked(product -> form.setValue("productId", product.getId()));
+camera.onPhoto(id -> form.setValue("photoIds", append(form.getValue("photoIds"), id)));
+```
+Anotasi ada di paket `com.onevour.core.form.annotation` (`import com.onevour.core.form.annotation.*;`): `@Required`, `@Numeric`, `@Min`, `@Max`, `@MinLength`, `@MaxLength`, `@Email`, `@Regex(value, message)`, `@Attachment`, `@Bind`, `@Ignore`. Semua punya `message` opsional (`@StringRes`); kalau 0, dipakai pesan bawaan EN/ID.
+
+#### B. Aturan antar-field dan register manual (kalau perlu)
+Anotasi cukup untuk aturan per field. Untuk aturan yang membandingkan field lain, atau view yang tidak bisa ditemukan otomatis, tambahkan secara manual. Registrasi manual menggantikan field dengan nama yang sama:
+```java
+form.register(binding.promoPrice, "promoPrice", Rules.required().number().min(1)
+        .custom((v, all) -> Rules.toNumber(v) <= Rules.toNumber(all.get("normalPrice")), R.string.err_promo_above_normal));
+form.register("productId", viewModel::productId, id -> viewModel.selectProduct((Long) id), Rules.required());
+form.watch("normalPrice", value -> updateSavings());
+```
+`EvoForm.with(activity, Values.class)` (tanpa root) juga tersedia untuk form yang semua field-nya didaftarkan manual.
+
+#### C. Perilaku
+- **Jenis view:** EditText (teks; error tampil di TextInputLayout kalau ada), CheckBox/Switch (boolean), RadioGroup (nilai = `android:tag` tombol, atau nama id-nya), Spinner (posisi). Untuk yang lain, pakai `register(name, getter, setter)`.
+- **Listener:** EvoForm memegang listener checked/radio milik field yang didaftarkan. Untuk logika aplikasi, pakai `form.watch(...)`. TextWatcher bersifat tambahan, dan listener spinner milik aplikasi tetap dipanggil.
+- **Draft:** kalau `.draft(...)` dipasang, setiap edit ditulis otomatis. `reset()` menawarkan draft, `leave()` memberi pilihan Lanjutkan nanti / Buang / Tetap di sini, dan `saved()` menghapus draft. Tanpa `.draft(...)`, `leave()` hanya menanyakan "keluar tanpa menyimpan?" kalau ada perubahan.
+- **Error dari server:** `form.setError("promoPrice", pesanServer)`.
+- **Pesan bawaan Rules** tersedia EN/ID (`commons_form_*`). Pesan sendiri bisa lewat `@StringRes` atau String.
+
+#### D. Rules
+| Rule | Arti |
+|---|---|
+| `Rules.required()` / `required(@StringRes)` / `required(String)` | wajib: tidak null, tidak kosong, bukan false, list tidak kosong |
+| `.number()` | angka (koma atau titik) |
+| `.min(n)` / `.max(n)` | batas nilai angka |
+| `.minLength(n)` / `.maxLength(n)` | panjang teks |
+| `.pattern(regex, @StringRes)` / `.email()` | pola teks |
+| `.custom(value -> ..., msg)` / `.custom((value, all) -> ..., msg)` | aturan sendiri, bisa membandingkan field lain |
+| `Rules.of()` | tanpa aturan awal, lalu disambung rule lain |
+
+Nilai kosong lolos dari semua rule kecuali `required`, sama seperti react-hook-form.
+
