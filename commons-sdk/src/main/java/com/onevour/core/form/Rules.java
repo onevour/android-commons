@@ -1,6 +1,5 @@
 package com.onevour.core.form;
 
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,10 +27,10 @@ import java.util.regex.Pattern;
  */
 public final class Rules {
 
-    /** One check: the error message, or null when the value passes. */
+    /** One check: the error, or null when the value passes. */
     interface Check {
         @Nullable
-        String test(Context context, @Nullable Object value, Map<String, Object> values);
+        FormError test(@Nullable Object value, Map<String, Object> values);
     }
 
     private final List<Check> checks = new ArrayList<>();
@@ -64,8 +63,8 @@ public final class Rules {
 
     /** {@code message}: a string resource, 0 for the library's. */
     public Rules number(@StringRes int message) {
-        checks.add((context, value, values) -> isEmpty(value) || toNumber(value) != null ? null
-                : message(context, message, R.string.commons_form_number));
+        checks.add((value, values) -> isEmpty(value) || toNumber(value) != null ? null
+                : message(message, R.string.commons_form_number));
         return this;
     }
 
@@ -74,10 +73,10 @@ public final class Rules {
     }
 
     public Rules min(double min, @StringRes int message) {
-        checks.add((context, value, values) -> {
+        checks.add((value, values) -> {
             Double number = toNumber(value);
             return isEmpty(value) || (number != null && number >= min) ? null
-                    : message(context, message, R.string.commons_form_min, format(min));
+                    : message(message, R.string.commons_form_min, format(min));
         });
         return this;
     }
@@ -87,10 +86,10 @@ public final class Rules {
     }
 
     public Rules max(double max, @StringRes int message) {
-        checks.add((context, value, values) -> {
+        checks.add((value, values) -> {
             Double number = toNumber(value);
             return isEmpty(value) || (number != null && number <= max) ? null
-                    : message(context, message, R.string.commons_form_max, format(max));
+                    : message(message, R.string.commons_form_max, format(max));
         });
         return this;
     }
@@ -100,8 +99,8 @@ public final class Rules {
     }
 
     public Rules minLength(int length, @StringRes int message) {
-        checks.add((context, value, values) -> isEmpty(value) || String.valueOf(value).length() >= length ? null
-                : message(context, message, R.string.commons_form_min_length, length));
+        checks.add((value, values) -> isEmpty(value) || String.valueOf(value).length() >= length ? null
+                : message(message, R.string.commons_form_min_length, length));
         return this;
     }
 
@@ -110,15 +109,15 @@ public final class Rules {
     }
 
     public Rules maxLength(int length, @StringRes int message) {
-        checks.add((context, value, values) -> isEmpty(value) || String.valueOf(value).length() <= length ? null
-                : message(context, message, R.string.commons_form_max_length, length));
+        checks.add((value, values) -> isEmpty(value) || String.valueOf(value).length() <= length ? null
+                : message(message, R.string.commons_form_max_length, length));
         return this;
     }
 
     public Rules pattern(String regex, @StringRes int message) {
         Pattern pattern = Pattern.compile(regex);
-        checks.add((context, value, values) -> isEmpty(value) || pattern.matcher(String.valueOf(value)).matches() ? null
-                : context.getString(message));
+        checks.add((value, values) -> isEmpty(value) || pattern.matcher(String.valueOf(value)).matches() ? null
+                : FormError.of(message));
         return this;
     }
 
@@ -132,43 +131,55 @@ public final class Rules {
 
     /** A check of the value alone. */
     public Rules custom(Predicate<Object> valid, @StringRes int message) {
-        checks.add((context, value, values) -> valid.test(value) ? null : context.getString(message));
+        checks.add((value, values) -> valid.test(value) ? null : FormError.of(message));
         return this;
     }
 
     /** A check of the value against the other values (e.g. end date after start date). */
     public Rules custom(BiPredicate<Object, Map<String, Object>> valid, @StringRes int message) {
-        checks.add((context, value, values) -> valid.test(value, values) ? null : context.getString(message));
+        checks.add((value, values) -> valid.test(value, values) ? null : FormError.of(message));
         return this;
     }
 
     public Rules custom(BiPredicate<Object, Map<String, Object>> valid, String message) {
-        checks.add((context, value, values) -> valid.test(value, values) ? null : message);
+        checks.add((value, values) -> valid.test(value, values) ? null : FormError.of(message));
         return this;
     }
 
-    /** The first failing check's message, null when all pass. */
+    /** A check of the value alone, its error with arguments (e.g. {@code FormError.of(R.string.too_long, max)}). */
+    public Rules custom(Predicate<Object> valid, FormError error) {
+        checks.add((value, values) -> valid.test(value) ? null : error);
+        return this;
+    }
+
+    /** A check against the other values, its error with arguments. */
+    public Rules custom(BiPredicate<Object, Map<String, Object>> valid, FormError error) {
+        checks.add((value, values) -> valid.test(value, values) ? null : error);
+        return this;
+    }
+
+    /** The first failing check's error, null when all pass. */
     @Nullable
-    String validate(@NonNull Context context, @Nullable Object value, Map<String, Object> values) {
+    public FormError validate(@Nullable Object value, Map<String, Object> values) {
         for (Check check : checks) {
-            String error = check.test(context, value, values);
+            FormError error = check.test(value, values);
             if (error != null) return error;
         }
         return null;
     }
 
     private Rules requiredCheck(@Nullable String message, @StringRes int resource) {
-        checks.add((context, value, values) -> {
+        checks.add((value, values) -> {
             if (!isEmpty(value) && !Boolean.FALSE.equals(value)) return null;
-            if (message != null) return message;
-            return context.getString(resource != 0 ? resource : R.string.commons_form_required);
+            if (message != null) return FormError.of(message);
+            return FormError.of(resource != 0 ? resource : R.string.commons_form_required);
         });
         return this;
     }
 
     /** The rule's own message when it has one, else the library's (with its argument). */
-    private static String message(Context context, @StringRes int own, @StringRes int library, Object... args) {
-        return own != 0 ? context.getString(own, args) : context.getString(library, args);
+    private static FormError message(@StringRes int own, @StringRes int library, Object... args) {
+        return FormError.of(own != 0 ? own : library, args);
     }
 
     /** The checks of {@code other} added after these. */
@@ -182,15 +193,17 @@ public final class Rules {
         return checks.isEmpty();
     }
 
-    static boolean isEmpty(@Nullable Object value) {
+    /** Null, blank text or an empty list. */
+    public static boolean isEmpty(@Nullable Object value) {
         if (Objects.isNull(value)) return true;
         if (value instanceof CharSequence) return value.toString().trim().isEmpty();
         if (value instanceof java.util.Collection) return ((java.util.Collection<?>) value).isEmpty();
         return false;
     }
 
+    /** A number, or text of one with a comma or dot decimal ("12,5"); null when it is not one. */
     @Nullable
-    static Double toNumber(@Nullable Object value) {
+    public static Double toNumber(@Nullable Object value) {
         if (value instanceof Number) return ((Number) value).doubleValue();
         if (Objects.isNull(value)) return null;
         String text = String.valueOf(value).trim().replace(",", ".");

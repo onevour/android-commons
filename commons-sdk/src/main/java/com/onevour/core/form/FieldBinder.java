@@ -177,7 +177,8 @@ abstract class FieldBinder {
             int id = group.getCheckedRadioButtonId();
             if (id == View.NO_ID) return null;
             View button = group.findViewById(id);
-            return valueOf(button);
+            // the checked row was removed (the options were built again)
+            return Objects.isNull(button) ? null : valueOf(button);
         }
 
         @Override
@@ -247,10 +248,14 @@ abstract class FieldBinder {
         @Override
         void listen(Runnable changed) {
             AdapterView.OnItemSelectedListener own = view.getOnItemSelectedListener();
+            // a spinner reports its first position by itself after layout: not an edit
+            int[] last = {view.getSelectedItemPosition()};
             view.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View item, int position, long id) {
                     if (Objects.nonNull(own)) own.onItemSelected(parent, item, position, id);
+                    if (position == last[0]) return;
+                    last[0] = position;
                     changed.run();
                 }
 

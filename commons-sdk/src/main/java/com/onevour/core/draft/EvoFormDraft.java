@@ -33,10 +33,10 @@ import java.util.function.Supplier;
  *
  * <pre>
  * // a complex form: the ViewModel holds the input
- * draft = FormDraft.forModel(this, "SOS", key, ownerId, SosState.class, vm::formState, vm::restore)
+ * draft = EvoFormDraft.forModel(this, "SOS", key, ownerId, SosState.class, vm::formState, vm::restore)
  *         .photos(SosState::photoIds);
  * // a simple one-screen form: the inputs with an id are the input
- * draft = FormDraft.forLayout(this, "REASON", key, ownerId, binding.getRoot());
+ * draft = EvoFormDraft.forLayout(this, "REASON", key, ownerId, binding.getRoot());
  *
  * draft.offerRestore();            // once the form shows its data
  * draft.changed();                 // after an edit (forLayout watches its text fields itself)
@@ -44,7 +44,7 @@ import java.util.function.Supplier;
  * onBackPressed: draft.leave(this::finish);
  * </pre>
  */
-public final class FormDraft<T> {
+public final class EvoFormDraft<T> {
 
     /** The form behind a draft: its state as a plain object (Gson), and back. */
     public interface Host<T> {
@@ -96,7 +96,7 @@ public final class FormDraft<T> {
     @Nullable
     private Function<T, Collection<Long>> photos;
 
-    public FormDraft(@NonNull AppCompatActivity activity, @NonNull String form, @NonNull String key,
+    public EvoFormDraft(@NonNull AppCompatActivity activity, @NonNull String form, @NonNull String key,
                      @Nullable String ownerId, @NonNull Class<T> type, @NonNull Host<T> host) {
         this.activity = activity;
         this.form = form;
@@ -113,10 +113,10 @@ public final class FormDraft<T> {
     }
 
     /** A form whose input is held by its ViewModel: {@code capture} reads it, {@code restore} puts a draft back. */
-    public static <T> FormDraft<T> forModel(@NonNull AppCompatActivity activity, @NonNull String form, @NonNull String key,
+    public static <T> EvoFormDraft<T> forModel(@NonNull AppCompatActivity activity, @NonNull String form, @NonNull String key,
                                             @Nullable String ownerId, @NonNull Class<T> type,
                                             @NonNull Supplier<T> capture, @NonNull Consumer<T> restore) {
-        return new FormDraft<>(activity, form, key, ownerId, type, new Host<T>() {
+        return new EvoFormDraft<>(activity, form, key, ownerId, type, new Host<T>() {
             @Override
             public T capture() {
                 return capture.get();
@@ -136,10 +136,10 @@ public final class FormDraft<T> {
      * A view tagged {@link LayoutState#IGNORE} (a computed value) is left out.
      */
     @SuppressWarnings("unchecked")
-    public static FormDraft<Map<String, Object>> forLayout(@NonNull AppCompatActivity activity, @NonNull String form,
+    public static EvoFormDraft<Map<String, Object>> forLayout(@NonNull AppCompatActivity activity, @NonNull String form,
                                                            @NonNull String key, @Nullable String ownerId, @NonNull View root) {
         LayoutState layout = new LayoutState(root);
-        FormDraft<Map<String, Object>> draft = new FormDraft<>(activity, form, key, ownerId, (Class<Map<String, Object>>) (Class<?>) Map.class,
+        EvoFormDraft<Map<String, Object>> draft = new EvoFormDraft<>(activity, form, key, ownerId, (Class<Map<String, Object>>) (Class<?>) Map.class,
                 new Host<Map<String, Object>>() {
                     @Override
                     public Map<String, Object> capture() {
@@ -156,7 +156,7 @@ public final class FormDraft<T> {
     }
 
     /** The draft attachments (photo ids) a state holds: thrown away with a discarded draft. */
-    public FormDraft<T> photos(@NonNull Function<T, Collection<Long>> photoIds) {
+    public EvoFormDraft<T> photos(@NonNull Function<T, Collection<Long>> photoIds) {
         this.photos = photoIds;
         return this;
     }

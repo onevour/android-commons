@@ -17,7 +17,7 @@ import java.util.Map;
 public class DraftsTest {
 
     /** A store in memory. */
-    static final class MemoryStore implements DraftStore {
+    public static final class MemoryStore implements DraftStore {
 
         final Map<String, DraftRecord> rows = new LinkedHashMap<>();
 

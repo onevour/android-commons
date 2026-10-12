@@ -20,14 +20,14 @@ import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 /**
- * Form drafts: a form's input kept while it is filled ({@link FormDraft} writes it as it changes), so a dead battery
+ * Form drafts: a form's input kept while it is filled ({@link EvoFormDraft} writes it as it changes), so a dead battery
  * or a killed app never makes the user type it again. Like RefSession, it keeps its own database
  * ({@link SqliteDraftStore#NAME}) and needs nothing but ContextHelper.init(application): a form just uses
- * {@link FormDraft#forModel} or {@link FormDraft#forLayout}. An app whose forms attach files (photos) or that names
+ * {@link EvoFormDraft#forModel} or {@link EvoFormDraft#forLayout}. An app whose forms attach files (photos) or that names
  * the user writing the drafts says so once with {@link #configure}. The rule a form follows: its input is a draft until
  * it is saved (the draft is then deleted); leaving asks "continue later" (the draft stays) or "discard".
  *
- * <p>The calls here touch the store: call them off the main thread ({@link #run}), as FormDraft does.
+ * <p>The calls here touch the store: call them off the main thread ({@link #run}), as EvoFormDraft does.
  */
 public final class Drafts {
 

@@ -52,6 +52,11 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.google.android.material:material:1.14.0'
     implementation 'androidx.appcompat:appcompat:1.8.0'
+    // FormModel (the form state in a ViewModel) and EvoForm (its UI binder)
+    api 'androidx.lifecycle:lifecycle-viewmodel:2.6.2'
+    api 'androidx.lifecycle:lifecycle-livedata:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.2'
+    implementation 'androidx.fragment:fragment:1.6.2'
     implementation 'com.google.code.gson:gson:2.10'
     implementation 'com.github.bumptech.glide:glide:4.13.1'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
@@ -62,6 +67,7 @@ dependencies {
 
     // test
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'androidx.arch.core:core-testing:2.2.0'
     // the REST tests run against the code generated for their @RestRepository (not in an app that
     // includes commons-sdk alone, e.g. sds-mobile's local build)
     if (findProject(':commons-sdk-processor') != null) {
